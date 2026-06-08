@@ -1,0 +1,137 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { collection, addDoc } from "firebase/firestore";
+import { db, auth } from "../firebase";
+
+const categories = ["🍜 식비", "☕ 카페", "🎬 문화", "🚌 교통", "🛍️ 쇼핑", "💊 의료", "🏠 생활", "💑 데이트", "기타"];
+
+const AddTransactionPage = () => {
+  const navigate = useNavigate();
+  const [amount, setAmount] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("🍜 식비");
+  const [paidBy, setPaidBy] = useState<"me" | "partner" | "together">("me");
+  const [type, setType] = useState<"expense" | "income">("expense");
+  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+
+  const handleSubmit = async () => {
+    if (!amount || !description) {
+      alert("금액과 내용을 입력해주세요!");
+      return;
+    }
+    try {
+      await addDoc(collection(db, "transactions"), {
+        amount: Number(amount),
+        description,
+        category,
+        paidBy,
+        type,
+        date,
+        createdBy: auth.currentUser?.uid,
+        createdAt: new Date(),
+      });
+      navigate("/home");
+    } catch (error) {
+      console.error("저장 실패:", error);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#faf9ff] max-w-[400px] mx-auto font-sans">
+      <div className="bg-[#7f77dd] px-5 pt-6 pb-8 rounded-b-[28px] flex items-center gap-3">
+        <button onClick={() => navigate("/home")} className="bg-transparent border-none text-white text-xl cursor-pointer">
+          ←
+        </button>
+        <div className="text-lg font-extrabold text-white">내역 추가</div>
+      </div>
+
+      <div className="p-5 flex flex-col gap-4">
+        <div className="flex gap-2">
+          <button
+            onClick={() => setType("expense")}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-bold cursor-pointer border-2 transition-colors ${type === "expense" ? "border-[#7f77dd] bg-[#eeedfe] text-[#534AB7]" : "border-[#c9c2f5] bg-white text-[#afa9ec]"}`}
+          >
+            지출
+          </button>
+          <button
+            onClick={() => setType("income")}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-bold cursor-pointer border-2 transition-colors ${type === "income" ? "border-[#7f77dd] bg-[#eeedfe] text-[#534AB7]" : "border-[#c9c2f5] bg-white text-[#afa9ec]"}`}
+          >
+            수입
+          </button>
+        </div>
+
+        <div>
+          <div className="text-xs text-[#8882cc] font-bold mb-1.5">금액</div>
+          <input
+            type="number"
+            placeholder="0"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            className="w-full px-4 py-3 rounded-2xl border-2 border-[#c9c2f5] text-xl font-extrabold text-[#534AB7] outline-none bg-white"
+          />
+        </div>
+
+        <div>
+          <div className="text-xs text-[#8882cc] font-bold mb-1.5">내용</div>
+          <input
+            type="text"
+            placeholder="어디서 썼나요?"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full px-4 py-3 rounded-2xl border-2 border-[#c9c2f5] text-sm outline-none bg-white"
+          />
+        </div>
+
+        <div>
+          <div className="text-xs text-[#8882cc] font-bold mb-1.5">카테고리</div>
+          <div className="flex flex-wrap gap-2">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setCategory(cat)}
+                className={`px-3 py-2 rounded-xl text-xs font-bold cursor-pointer border-2 transition-colors ${category === cat ? "border-[#7f77dd] bg-[#eeedfe] text-[#534AB7]" : "border-[#c9c2f5] bg-white text-[#888]"}`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <div className="text-xs text-[#8882cc] font-bold mb-1.5">누가 썼나요?</div>
+          <div className="flex gap-2">
+            {(["me", "together", "partner"] as const).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPaidBy(p)}
+                className={`flex-1 py-2.5 rounded-xl text-sm font-bold cursor-pointer border-2 transition-colors ${paidBy === p ? "border-[#7f77dd] bg-[#eeedfe] text-[#534AB7]" : "border-[#c9c2f5] bg-white text-[#afa9ec]"}`}
+              >
+                {p === "me" ? "나" : p === "together" ? "같이" : "파트너"}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <div className="text-xs text-[#8882cc] font-bold mb-1.5">날짜</div>
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="w-full px-4 py-3 rounded-2xl border-2 border-[#c9c2f5] text-sm outline-none bg-white"
+          />
+        </div>
+
+        <button
+          onClick={handleSubmit}
+          className="w-full py-4 rounded-2xl bg-[#7f77dd] text-white text-base font-extrabold cursor-pointer mt-2"
+        >
+          저장하기 💜
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default AddTransactionPage;
