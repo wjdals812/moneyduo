@@ -1,9 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, doc, getDoc } from "firebase/firestore";
 import { db, auth } from "../firebase";
-
-const categories = ["🍜 식비", "☕ 카페", "🎬 문화", "🚌 교통", "🛍️ 쇼핑", "💊 의료", "🏠 생활", "💑 데이트", "기타"];
 
 const AddTransactionPage = () => {
   const navigate = useNavigate();
@@ -13,6 +11,22 @@ const AddTransactionPage = () => {
   const [paidBy, setPaidBy] = useState<"me" | "partner" | "together">("me");
   const [type, setType] = useState<"expense" | "income">("expense");
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+
+  const defaultCategories = ["🍜 식비", "☕ 카페", "🎬 문화", "🚌 교통", "🛍️ 쇼핑", "💊 의료", "🏠 생활", "💑 데이트", "기타"];
+  const [categories, setCategories] = useState<string[]>(defaultCategories);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const uid = auth.currentUser?.uid;
+      if (!uid) return;
+      const ref = doc(db, "userSettings", uid);
+      const snapshot = await getDoc(ref);
+      if (snapshot.exists() && snapshot.data().categories) {
+        setCategories(snapshot.data().categories);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const handleSubmit = async () => {
     if (!amount || !description) {
