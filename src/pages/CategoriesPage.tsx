@@ -12,7 +12,7 @@ const CategoriesPage = () => {
   const [showInput, setShowInput] = useState(false);
 
   useEffect(() => {
-    const fetch = async () => {
+    const fetchCategories = async () => {
       const uid = auth.currentUser?.uid;
       if (!uid) return;
       const ref = doc(db, "userSettings", uid);
@@ -21,7 +21,7 @@ const CategoriesPage = () => {
         setCategories(snapshot.data().categories);
       }
     };
-    fetch();
+    fetchCategories();
   }, []);
 
   const save = async (updated: string[]) => {
@@ -46,46 +46,101 @@ const CategoriesPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#faf9ff] max-w-[400px] mx-auto font-sans">
-      <div className="bg-[#7f77dd] px-5 pt-6 pb-8 rounded-b-[28px] flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="bg-transparent border-none text-white text-xl cursor-pointer">←</button>
-        <div className="text-lg font-extrabold text-white">카테고리 관리</div>
+    <div style={{
+      minHeight: "100svh",
+      background: "linear-gradient(160deg, #f5f0ff 0%, #fff0f7 50%, #f0f4ff 100%)",
+      maxWidth: "400px",
+      margin: "0 auto",
+      fontFamily: "'Nunito', 'Apple SD Gothic Neo', sans-serif",
+    }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap');`}</style>
+
+      <div style={{
+        background: "linear-gradient(135deg, #7f77dd 0%, #a78bfa 100%)",
+        padding: "28px 20px 36px",
+        borderRadius: "0 0 32px 32px",
+        boxShadow: "0 8px 32px #7f77dd40",
+        display: "flex",
+        alignItems: "center",
+        gap: "12px",
+      }}>
+        <button onClick={() => navigate(-1)} style={{
+          background: "rgba(255,255,255,0.15)",
+          border: "1.5px solid rgba(255,255,255,0.3)",
+          borderRadius: "12px",
+          color: "white",
+          fontSize: "16px",
+          width: "36px", height: "36px",
+          cursor: "pointer",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>←</button>
+        <div style={{ fontSize: "18px", fontWeight: 800, color: "white" }}>카테고리 관리 🏷️</div>
       </div>
 
-      <div className="p-5 flex flex-col gap-3">
+      <div style={{ padding: "20px 16px", display: "flex", flexDirection: "column", gap: "10px" }}>
         {categories.map((cat) => (
-          <div key={cat} className="flex items-center justify-between bg-white border-2 border-[#ede9fe] rounded-2xl px-4 py-3">
-            <span className="text-sm font-bold text-[#3C3489]">{cat}</span>
-            <button
-              onClick={() => handleDelete(cat)}
-              className="text-xs text-[#d4537e] font-bold bg-[#fff0f6] border border-[#f9c0d4] rounded-lg px-3 py-1 cursor-pointer"
-            >
-              삭제
-            </button>
+          <div key={cat} style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            background: "rgba(255,255,255,0.8)",
+            backdropFilter: "blur(8px)",
+            borderRadius: "16px",
+            border: "1.5px solid rgba(201,194,245,0.4)",
+            padding: "14px 16px",
+            boxShadow: "0 2px 12px #c9b4f518",
+          }}>
+            <span style={{ fontSize: "14px", fontWeight: 800, color: "#3C3489" }}>{cat}</span>
+            <button onClick={() => handleDelete(cat)} style={{
+              fontSize: "11px", fontWeight: 800,
+              color: "#d4537e",
+              background: "#fff0f6",
+              border: "1.5px solid #f9c0d4",
+              borderRadius: "10px",
+              padding: "5px 12px",
+              cursor: "pointer",
+            }}>삭제</button>
           </div>
         ))}
 
         {showInput ? (
-          <div className="flex gap-2 mt-1">
+          <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
             <input
               type="text"
               placeholder="예: 🎮 게임"
               value={newCategory}
               onChange={(e) => setNewCategory(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-              className="flex-1 px-4 py-3 rounded-2xl border-2 border-[#7f77dd] text-sm outline-none bg-white"
               autoFocus
+              style={{
+                flex: 1, padding: "12px 16px",
+                borderRadius: "16px",
+                border: "2px solid #7f77dd",
+                fontSize: "13px", outline: "none",
+                background: "white",
+                fontFamily: "'Nunito', sans-serif",
+              }}
             />
-            <button onClick={handleAdd} className="px-4 py-3 rounded-2xl bg-[#7f77dd] text-white text-sm font-bold cursor-pointer">추가</button>
-            <button onClick={() => { setShowInput(false); setNewCategory(""); }} className="px-4 py-3 rounded-2xl border-2 border-[#c9c2f5] text-sm font-bold cursor-pointer bg-white text-[#aaa]">취소</button>
+            <button onClick={handleAdd} style={{
+              padding: "12px 16px", borderRadius: "16px",
+              background: "linear-gradient(135deg, #7f77dd, #a78bfa)",
+              color: "white", fontSize: "13px", fontWeight: 800,
+              border: "none", cursor: "pointer",
+            }}>추가</button>
+            <button onClick={() => { setShowInput(false); setNewCategory(""); }} style={{
+              padding: "12px 16px", borderRadius: "16px",
+              background: "white", color: "#aaa",
+              fontSize: "13px", fontWeight: 800,
+              border: "2px solid #ede9fe", cursor: "pointer",
+            }}>취소</button>
           </div>
         ) : (
-          <button
-            onClick={() => setShowInput(true)}
-            className="w-full py-3 rounded-2xl border-2 border-dashed border-[#c9c2f5] text-sm font-bold text-[#aaa] cursor-pointer bg-white mt-1"
-          >
-            + 카테고리 추가
-          </button>
+          <button onClick={() => setShowInput(true)} style={{
+            width: "100%", padding: "14px",
+            borderRadius: "16px",
+            border: "2px dashed #c9c2f5",
+            background: "rgba(255,255,255,0.6)",
+            color: "#b0a8e8", fontSize: "13px", fontWeight: 800,
+            cursor: "pointer", marginTop: "4px",
+          }}>+ 카테고리 추가</button>
         )}
       </div>
     </div>

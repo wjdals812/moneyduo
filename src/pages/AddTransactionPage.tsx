@@ -51,104 +51,145 @@ const AddTransactionPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#faf9ff] max-w-[400px] mx-auto font-sans">
-      <div className="bg-[#7f77dd] px-5 pt-6 pb-8 rounded-b-[28px] flex items-center gap-3">
-        <button onClick={() => navigate("/home")} className="bg-transparent border-none text-white text-xl cursor-pointer">
-          ←
-        </button>
-        <div className="text-lg font-extrabold text-white">내역 추가</div>
+    <div style={{
+      minHeight: "100svh",
+      background: "linear-gradient(160deg, #f5f0ff 0%, #fff0f7 50%, #f0f4ff 100%)",
+      maxWidth: "400px",
+      margin: "0 auto",
+      fontFamily: "'Nunito', 'Apple SD Gothic Neo', sans-serif",
+      paddingBottom: "40px",
+    }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap');`}</style>
+
+      <div style={{
+        background: "linear-gradient(135deg, #7f77dd 0%, #a78bfa 100%)",
+        padding: "28px 20px 36px",
+        borderRadius: "0 0 32px 32px",
+        boxShadow: "0 8px 32px #7f77dd40",
+        display: "flex",
+        alignItems: "center",
+        gap: "12px",
+      }}>
+        <button onClick={() => navigate("/home")} style={{
+          background: "rgba(255,255,255,0.15)",
+          border: "1.5px solid rgba(255,255,255,0.3)",
+          borderRadius: "12px",
+          color: "white", fontSize: "16px",
+          width: "36px", height: "36px",
+          cursor: "pointer",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>←</button>
+        <div style={{ fontSize: "18px", fontWeight: 800, color: "white" }}>내역 추가 💜</div>
       </div>
 
-      <div className="p-5 flex flex-col gap-4">
-        <div className="flex gap-2">
-          <button
-            onClick={() => setType("expense")}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-bold cursor-pointer border-2 transition-colors ${type === "expense" ? "border-[#7f77dd] bg-[#eeedfe] text-[#534AB7]" : "border-[#c9c2f5] bg-white text-[#afa9ec]"}`}
-          >
-            지출
-          </button>
-          <button
-            onClick={() => setType("income")}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-bold cursor-pointer border-2 transition-colors ${type === "income" ? "border-[#7f77dd] bg-[#eeedfe] text-[#534AB7]" : "border-[#c9c2f5] bg-white text-[#afa9ec]"}`}
-          >
-            수입
-          </button>
+      <div style={{ padding: "20px 16px", display: "flex", flexDirection: "column", gap: "16px" }}>
+
+        {/* 지출/수입 */}
+        <div style={{ display: "flex", gap: "8px" }}>
+          {(["expense", "income"] as const).map((t) => (
+            <button key={t} onClick={() => setType(t)} style={{
+              flex: 1, padding: "10px",
+              borderRadius: "14px", fontSize: "13px", fontWeight: 800,
+              cursor: "pointer", border: "2px solid",
+              borderColor: type === t ? "#7f77dd" : "#c9c2f5",
+              background: type === t ? "#eeedfe" : "white",
+              color: type === t ? "#534AB7" : "#afa9ec",
+              transition: "all 0.15s",
+            }}>{t === "expense" ? "지출" : "수입"}</button>
+          ))}
         </div>
 
+        {/* 금액 */}
         <div>
-          <div className="text-xs text-[#8882cc] font-bold mb-1.5">금액</div>
-          <input
-            type="number"
-            placeholder="0"
-            value={amount}
+          <div style={{ fontSize: "11px", color: "#8882cc", fontWeight: 800, marginBottom: "6px" }}>금액</div>
+          <input type="number" placeholder="0" value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="w-full px-4 py-3 rounded-2xl border-2 border-[#c9c2f5] text-xl font-extrabold text-[#534AB7] outline-none bg-white"
-          />
+            style={{
+              width: "100%", padding: "12px 16px", boxSizing: "border-box",
+              borderRadius: "16px", border: "2px solid #c9c2f5",
+              fontSize: "20px", fontWeight: 900, color: "#534AB7",
+              outline: "none", background: "white",
+              fontFamily: "'Nunito', sans-serif",
+            }} />
         </div>
 
+        {/* 내용 */}
         <div>
-          <div className="text-xs text-[#8882cc] font-bold mb-1.5">내용</div>
-          <input
-            type="text"
-            placeholder="어디서 썼나요?"
-            value={description}
+          <div style={{ fontSize: "11px", color: "#8882cc", fontWeight: 800, marginBottom: "6px" }}>내용</div>
+          <input type="text" placeholder="어디서 썼나요?" value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full px-4 py-3 rounded-2xl border-2 border-[#c9c2f5] text-sm outline-none bg-white"
-          />
+            style={{
+              width: "100%", padding: "12px 16px", boxSizing: "border-box",
+              borderRadius: "16px", border: "2px solid #c9c2f5",
+              fontSize: "13px", outline: "none", background: "white",
+              fontFamily: "'Nunito', sans-serif",
+            }} />
         </div>
 
-        {/* 카테고리 UI */}
+        {/* 카테고리 */}
         <div>
-          <div className="flex justify-between items-center mb-1.5">
-            <div className="text-xs text-[#8882cc] font-bold">카테고리</div>
-            <button
-              onClick={() => navigate("/categories")}
-              className="text-xs text-[#7f77dd] font-bold bg-[#eeedfe] border border-[#c9c2f5] rounded-lg px-2 py-1 cursor-pointer"
-            >
-              관리 ⚙️
-            </button>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+            <div style={{ fontSize: "11px", color: "#8882cc", fontWeight: 800 }}>카테고리</div>
+            <button onClick={() => navigate("/categories")} style={{
+              fontSize: "11px", fontWeight: 800, color: "#7f77dd",
+              background: "#eeedfe", border: "1.5px solid #c9c2f5",
+              borderRadius: "10px", padding: "4px 10px", cursor: "pointer",
+            }}>관리 ⚙️</button>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
             {categories.map((cat) => (
-              <button key={cat} onClick={() => setCategory(cat)}
-                className={`px-3 py-2 rounded-xl text-xs font-bold cursor-pointer border-2 transition-colors ${category === cat ? "border-[#7f77dd] bg-[#eeedfe] text-[#534AB7]" : "border-[#c9c2f5] bg-white text-[#888]"}`}>
-                {cat}
-              </button>
+              <button key={cat} onClick={() => setCategory(cat)} style={{
+                padding: "8px 12px", borderRadius: "12px",
+                fontSize: "12px", fontWeight: 800, cursor: "pointer",
+                border: "2px solid",
+                borderColor: category === cat ? "#7f77dd" : "#c9c2f5",
+                background: category === cat ? "#eeedfe" : "white",
+                color: category === cat ? "#534AB7" : "#888",
+                transition: "all 0.15s",
+              }}>{cat}</button>
             ))}
           </div>
         </div>
 
+        {/* 누가 */}
         <div>
-          <div className="text-xs text-[#8882cc] font-bold mb-1.5">누가 썼나요?</div>
-          <div className="flex gap-2">
+          <div style={{ fontSize: "11px", color: "#8882cc", fontWeight: 800, marginBottom: "6px" }}>누가 썼나요?</div>
+          <div style={{ display: "flex", gap: "8px" }}>
             {(["me", "together", "partner"] as const).map((p) => (
-              <button
-                key={p}
-                onClick={() => setPaidBy(p)}
-                className={`flex-1 py-2.5 rounded-xl text-sm font-bold cursor-pointer border-2 transition-colors ${paidBy === p ? "border-[#7f77dd] bg-[#eeedfe] text-[#534AB7]" : "border-[#c9c2f5] bg-white text-[#afa9ec]"}`}
-              >
-                {p === "me" ? "나" : p === "together" ? "같이" : "짝꿍"}
-              </button>
+              <button key={p} onClick={() => setPaidBy(p)} style={{
+                flex: 1, padding: "10px",
+                borderRadius: "14px", fontSize: "13px", fontWeight: 800,
+                cursor: "pointer", border: "2px solid",
+                borderColor: paidBy === p ? "#7f77dd" : "#c9c2f5",
+                background: paidBy === p ? "#eeedfe" : "white",
+                color: paidBy === p ? "#534AB7" : "#afa9ec",
+                transition: "all 0.15s",
+              }}>{p === "me" ? "나" : p === "together" ? "같이" : "짝꿍"}</button>
             ))}
           </div>
         </div>
 
+        {/* 날짜 */}
         <div>
-          <div className="text-xs text-[#8882cc] font-bold mb-1.5">날짜</div>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="w-full px-4 py-3 rounded-2xl border-2 border-[#c9c2f5] text-sm outline-none bg-white"
-          />
+          <div style={{ fontSize: "11px", color: "#8882cc", fontWeight: 800, marginBottom: "6px" }}>날짜</div>
+          <input type="date" value={date} onChange={(e) => setDate(e.target.value)}
+            style={{
+              width: "100%", padding: "12px 16px", boxSizing: "border-box",
+              borderRadius: "16px", border: "2px solid #c9c2f5",
+              fontSize: "13px", outline: "none", background: "white",
+              fontFamily: "'Nunito', sans-serif",
+            }} />
         </div>
 
-        <button
-          onClick={handleSubmit}
-          className="w-full py-4 rounded-2xl bg-[#7f77dd] text-white text-base font-extrabold cursor-pointer mt-2"
-        >
-          저장하기 💜
-        </button>
+        <button onClick={handleSubmit} style={{
+          width: "100%", padding: "16px",
+          borderRadius: "20px",
+          background: "linear-gradient(135deg, #7f77dd, #a78bfa)",
+          color: "white", fontSize: "15px", fontWeight: 900,
+          border: "none", cursor: "pointer",
+          boxShadow: "0 4px 20px #7f77dd60",
+          marginTop: "4px",
+        }}>저장하기 💜</button>
       </div>
     </div>
   );
