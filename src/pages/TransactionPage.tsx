@@ -12,7 +12,7 @@ const TransactionPage = () => {
   const navigate = useNavigate();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [filter, setFilter] = useState<FilterType>("all");
-  const [uid, setUid] = useState("");
+  const [, setUid] = useState("");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
