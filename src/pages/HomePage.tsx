@@ -6,7 +6,6 @@ import { collection, query, where, orderBy, limit, getDocs } from "firebase/fire
 import BottomNav from "../components/BottomNav";
 import type { Transaction } from "../types/index";
 
-// 날짜별로 트랜잭션 그룹핑
 const groupByDate = (transactions: Transaction[]) => {
   const map = new Map<string, Transaction[]>();
   for (const tx of transactions) {
@@ -14,10 +13,9 @@ const groupByDate = (transactions: Transaction[]) => {
     list.push(tx);
     map.set(tx.date, list);
   }
-  return Array.from(map.entries()); // [["2025-06-01", [...]], ...]
+  return Array.from(map.entries());
 };
 
-// 날짜 포맷: "2025-06-01" → "6월 1일 (일)"
 const formatDate = (dateStr: string) => {
   const d = new Date(dateStr);
   const days = ["일", "월", "화", "수", "목", "금", "토"];
@@ -71,112 +69,307 @@ const HomePage = () => {
   const grouped = groupByDate(transactions);
 
   return (
-    <div className="min-h-screen bg-[#faf9ff] max-w-[400px] mx-auto font-sans pb-28">
+    <div style={{
+      minHeight: "100svh",
+      background: "linear-gradient(160deg, #f5f0ff 0%, #fff0f7 50%, #f0f4ff 100%)",
+      maxWidth: "400px",
+      margin: "0 auto",
+      fontFamily: "'Nunito', 'Apple SD Gothic Neo', sans-serif",
+      paddingBottom: "100px",
+      position: "relative",
+    }}>
+
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Gaegu:wght@700&display=swap');
+
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(16px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes float0 {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-6px); }
+        }
+        @keyframes shimmer {
+          0% { background-position: -200% center; }
+          100% { background-position: 200% center; }
+        }
+        .tx-card:hover {
+          transform: translateX(3px);
+          box-shadow: 0 4px 20px #c9b4f530 !important;
+        }
+        .fab-btn:hover {
+          transform: scale(1.1) !important;
+          box-shadow: 0 8px 28px #7f77dd80 !important;
+        }
+        .fab-btn:active {
+          transform: scale(0.95) !important;
+        }
+        .logout-btn:hover {
+          background: rgba(255,255,255,0.2) !important;
+        }
+      `}</style>
+
+      {/* 배경 빛망울 */}
+      <div style={{
+        position: "fixed", top: "-80px", right: "-60px",
+        width: "260px", height: "260px", borderRadius: "50%",
+        background: "radial-gradient(circle, #e0d5ff55, transparent)",
+        filter: "blur(40px)", pointerEvents: "none", zIndex: 0,
+      }} />
+      <div style={{
+        position: "fixed", bottom: "120px", left: "-80px",
+        width: "240px", height: "240px", borderRadius: "50%",
+        background: "radial-gradient(circle, #ffd6ee44, transparent)",
+        filter: "blur(40px)", pointerEvents: "none", zIndex: 0,
+      }} />
+
       {/* 헤더 */}
-      <div className="bg-[#7f77dd] px-5 pt-6 pb-8 rounded-b-[28px] mb-4">
-        <div className="text-xs text-[#c9c5f5] font-bold">{monthLabel}</div>
-        <div className="text-2xl font-extrabold text-white mt-0.5">MoneyDuo 💜</div>
-        <div className="text-xs text-[#c9c5f5]">안녕하세요, {userName}님!</div>
-        <button
-          onClick={handleLogout}
-          className="mt-3 bg-transparent border border-[#c9c5f5] rounded-lg text-[#c9c5f5] text-xs px-3 py-1 cursor-pointer"
-        >
-          로그아웃
-        </button>
+      <div style={{
+        background: "linear-gradient(135deg, #7f77dd 0%, #a78bfa 100%)",
+        padding: "28px 20px 36px",
+        borderRadius: "0 0 32px 32px",
+        marginBottom: "0",
+        position: "relative",
+        overflow: "hidden",
+        boxShadow: "0 8px 32px #7f77dd40",
+        animation: "fadeUp 0.5s ease both",
+      }}>
+        {/* 헤더 장식 원 */}
+        <div style={{
+          position: "absolute", top: "-30px", right: "-30px",
+          width: "120px", height: "120px", borderRadius: "50%",
+          background: "rgba(255,255,255,0.1)", pointerEvents: "none",
+        }} />
+        <div style={{
+          position: "absolute", bottom: "-20px", right: "60px",
+          width: "80px", height: "80px", borderRadius: "50%",
+          background: "rgba(255,255,255,0.07)", pointerEvents: "none",
+        }} />
+
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <div>
+            <div style={{ fontSize: "11px", color: "#ddd6fe", fontWeight: 700, marginBottom: "2px" }}>
+              {monthLabel} 🗓️
+            </div>
+            <div style={{
+              fontFamily: "'Gaegu', sans-serif",
+              fontSize: "26px", fontWeight: 700,
+              color: "white", lineHeight: 1.2,
+            }}>
+              MoneyDuo 💜
+            </div>
+            <div style={{ fontSize: "12px", color: "#ddd6fe", marginTop: "4px" }}>
+              안녕하세요, <span style={{ fontWeight: 800, color: "white" }}>{userName}</span>님! 🐰
+            </div>
+          </div>
+          <button
+            className="logout-btn"
+            onClick={handleLogout}
+            style={{
+              background: "rgba(255,255,255,0.12)",
+              border: "1.5px solid rgba(255,255,255,0.3)",
+              borderRadius: "12px",
+              color: "white",
+              fontSize: "11px",
+              fontWeight: 700,
+              padding: "6px 12px",
+              cursor: "pointer",
+              fontFamily: "'Nunito', sans-serif",
+              transition: "background 0.15s",
+            }}
+          >
+            로그아웃
+          </button>
+        </div>
       </div>
 
-      <div className="px-4">
-        {/* 수입/지출/순액 요약 테이블 */}
-        <div className="bg-white rounded-[20px] border-2 border-[#c9c2f5] overflow-hidden mb-4">
-          <div className="grid grid-cols-3 divide-x divide-[#ede9fe]">
-            <div className="flex flex-col items-center py-3 px-1">
-              <span className="text-[10px] text-[#8882cc] font-bold mb-1">수입</span>
-              <span className="text-sm font-extrabold text-[#3B6D11]">
-                +{totalIncome.toLocaleString()}
+      {/* 요약 카드 — 헤더에 살짝 겹치게 */}
+      <div style={{
+        margin: "-18px 16px 0",
+        background: "rgba(255,255,255,0.80)",
+        backdropFilter: "blur(16px)",
+        borderRadius: "20px",
+        border: "2px solid rgba(201,194,245,0.45)",
+        boxShadow: "0 4px 24px #c9b4f522",
+        overflow: "hidden",
+        position: "relative",
+        zIndex: 2,
+        animation: "fadeUp 0.5s 0.1s ease both",
+        opacity: 0,
+        animationFillMode: "forwards",
+      }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
+          {[
+            { label: "수입", value: `+${totalIncome.toLocaleString()}`, color: "#3B8C3B", bg: "#f0fdf4" },
+            { label: "지출", value: `-${totalExpense.toLocaleString()}`, color: "#d4537e", bg: "#fff0f6" },
+            { label: "순액", value: `${net >= 0 ? "+" : ""}${net.toLocaleString()}`, color: net >= 0 ? "#6B5CE7" : "#d4537e", bg: net >= 0 ? "#f5f0ff" : "#fff0f6" },
+          ].map((item, i) => (
+            <div key={i} style={{
+              display: "flex", flexDirection: "column", alignItems: "center",
+              padding: "14px 4px",
+              borderRight: i < 2 ? "1.5px solid #ede9fe" : "none",
+              background: item.bg,
+            }}>
+              <span style={{ fontSize: "10px", color: "#9e99cc", fontWeight: 800, marginBottom: "4px" }}>
+                {item.label}
               </span>
-              <span className="text-[9px] text-[#afa9ec]">원</span>
-            </div>
-            <div className="flex flex-col items-center py-3 px-1">
-              <span className="text-[10px] text-[#8882cc] font-bold mb-1">지출</span>
-              <span className="text-sm font-extrabold text-[#d4537e]">
-                -{totalExpense.toLocaleString()}
+              <span style={{ fontSize: "13px", fontWeight: 900, color: item.color, letterSpacing: "-0.3px" }}>
+                {item.value}
               </span>
-              <span className="text-[9px] text-[#afa9ec]">원</span>
+              <span style={{ fontSize: "9px", color: "#c4bfea", marginTop: "1px" }}>원</span>
             </div>
-            <div className="flex flex-col items-center py-3 px-1">
-              <span className="text-[10px] text-[#8882cc] font-bold mb-1">순액</span>
-              <span className={`text-sm font-extrabold ${net >= 0 ? "text-[#534AB7]" : "text-[#d4537e]"}`}>
-                {net >= 0 ? "+" : ""}{net.toLocaleString()}
-              </span>
-              <span className="text-[9px] text-[#afa9ec]">원</span>
-            </div>
-          </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 타임라인 */}
+      <div style={{ padding: "20px 16px 0", position: "relative", zIndex: 1 }}>
+        <div style={{
+          display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px",
+          animation: "fadeUp 0.5s 0.2s ease both", opacity: 0, animationFillMode: "forwards",
+        }}>
+          <span style={{
+            fontFamily: "'Gaegu', sans-serif",
+            fontSize: "16px", fontWeight: 700, color: "#6B5CE7",
+          }}>최근 내역</span>
+          <div style={{ flex: 1, height: "1.5px", background: "linear-gradient(to right, #ddd6fe, transparent)" }} />
+          <span style={{ fontSize: "13px" }}>📋</span>
         </div>
 
-        {/* 타임라인 */}
-        <div className="text-sm font-extrabold text-[#534AB7] mb-3">최근 내역</div>
-
         {grouped.length === 0 ? (
-          <div className="text-[#afa9ec] text-sm text-center mt-10">
-            아직 내역이 없어요 😊
+          <div style={{
+            textAlign: "center", padding: "48px 0",
+            animation: "fadeUp 0.5s 0.3s ease both", opacity: 0, animationFillMode: "forwards",
+          }}>
+            <div style={{ fontSize: 40, marginBottom: 10, animation: "float0 2.5s ease-in-out infinite" }}>🐾</div>
+            <div style={{ fontSize: "13px", color: "#b0a8e8", fontWeight: 700 }}>아직 내역이 없어요</div>
+            <div style={{ fontSize: "11px", color: "#cfc8f0", marginTop: 4 }}>첫 번째 내역을 추가해보세요 💕</div>
           </div>
         ) : (
-          <div className="flex flex-col gap-4">
-            {grouped.map(([date, txs]) => (
-              <div key={date}>
-                {/* 날짜 헤더 */}
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-[11px] font-bold text-[#8882cc]">{formatDate(date)}</span>
-                  <div className="flex-1 h-[1px] bg-[#ede9fe]" />
-                  {/* 해당 날짜 소계 */}
-                  <span className="text-[10px] font-bold text-[#afa9ec]">
-                    {(() => {
-                      const dayNet =
-                        txs.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0) -
-                        txs.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
-                      return `${dayNet >= 0 ? "+" : ""}${dayNet.toLocaleString()}원`;
-                    })()}
-                  </span>
-                </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            {grouped.map(([date, txs], gi) => {
+              const dayNet =
+                txs.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0) -
+                txs.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+              return (
+                <div key={date} style={{
+                  animation: `fadeUp 0.5s ${0.2 + gi * 0.07}s ease both`,
+                  opacity: 0, animationFillMode: "forwards",
+                }}>
+                  {/* 날짜 헤더 */}
+                  <div style={{
+                    display: "flex", alignItems: "center", gap: "8px",
+                    marginBottom: "10px",
+                  }}>
+                    <div style={{
+                      background: "linear-gradient(135deg, #7f77dd, #a78bfa)",
+                      borderRadius: "10px",
+                      padding: "3px 10px",
+                      fontSize: "10px", fontWeight: 800, color: "white",
+                      whiteSpace: "nowrap",
+                      boxShadow: "0 2px 8px #7f77dd30",
+                    }}>
+                      {formatDate(date)}
+                    </div>
+                    <div style={{ flex: 1, height: "1px", background: "#ede9fe" }} />
+                    <span style={{
+                      fontSize: "10px", fontWeight: 800,
+                      color: dayNet >= 0 ? "#3B8C3B" : "#d4537e",
+                    }}>
+                      {dayNet >= 0 ? "+" : ""}{dayNet.toLocaleString()}원
+                    </span>
+                  </div>
 
-                {/* 해당 날짜 내역들 */}
-                <div className="flex flex-col gap-2 pl-2 border-l-2 border-[#c9c2f5] ml-1">
-                  {txs.map((tx) => (
-                    <div
-                      key={tx.id}
-                      className="bg-white rounded-2xl border-2 border-[#c9c2f5] p-3 flex items-center gap-3"
-                    >
-                      <div className="w-9 h-9 rounded-xl bg-[#eeedfe] flex items-center justify-center text-base shrink-0">
-                        {tx.category.split(" ")[0]}
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-sm font-bold text-[#3C3489]">{tx.description}</div>
-                        <div className="text-[11px] text-[#afa9ec] mt-0.5">
-                          {tx.paidBy === "me" ? "나" : tx.paidBy === "partner" ? "파트너" : "같이"}
+                  {/* 내역 카드들 */}
+                  <div style={{
+                    display: "flex", flexDirection: "column", gap: "8px",
+                    paddingLeft: "10px",
+                    borderLeft: "2.5px solid #ddd6fe",
+                    marginLeft: "4px",
+                  }}>
+                    {txs.map((tx) => (
+                      <div
+                        key={tx.id}
+                        className="tx-card"
+                        style={{
+                          background: "rgba(255,255,255,0.75)",
+                          backdropFilter: "blur(8px)",
+                          borderRadius: "16px",
+                          border: "1.5px solid rgba(201,194,245,0.4)",
+                          padding: "11px 14px",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "12px",
+                          transition: "transform 0.15s ease, box-shadow 0.15s ease",
+                          cursor: "default",
+                        }}
+                      >
+                        <div style={{
+                          width: "38px", height: "38px",
+                          borderRadius: "14px",
+                          background: tx.type === "expense"
+                            ? "linear-gradient(135deg, #ffe4f0, #ffd6ee)"
+                            : "linear-gradient(135deg, #e4f5e4, #d6f0d6)",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          fontSize: "18px", flexShrink: 0,
+                        }}>
+                          {tx.category.split(" ")[0]}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{
+                            fontSize: "13px", fontWeight: 800,
+                            color: "#3C3489", whiteSpace: "nowrap",
+                            overflow: "hidden", textOverflow: "ellipsis",
+                          }}>
+                            {tx.description}
+                          </div>
+                          <div style={{ fontSize: "10px", color: "#b0a8e8", marginTop: "2px" }}>
+                            {tx.paidBy === "me" ? "🐰 나" : tx.paidBy === "partner" ? "🐻 파트너" : "💕 같이"}
+                          </div>
+                        </div>
+                        <div style={{
+                          fontSize: "13px", fontWeight: 900,
+                          color: tx.type === "expense" ? "#d4537e" : "#3B8C3B",
+                          whiteSpace: "nowrap",
+                        }}>
+                          {tx.type === "expense" ? "-" : "+"}{tx.amount.toLocaleString()}원
                         </div>
                       </div>
-                      <div className={`text-sm font-extrabold ${tx.type === "expense" ? "text-[#d4537e]" : "text-[#3B6D11]"}`}>
-                        {tx.type === "expense" ? "-" : "+"}{tx.amount.toLocaleString()}원
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
 
-      {/* 추가 버튼 */}
+      {/* FAB 추가 버튼 */}
       <button
+        className="fab-btn"
         onClick={() => navigate("/add")}
-        className="fixed bottom-24 right-6 w-12 h-12 rounded-full bg-[#7f77dd] border-none text-white cursor-pointer shadow-lg flex items-center justify-center"
+        style={{
+          position: "fixed",
+          bottom: "88px", right: "calc(50% - 184px)",
+          width: "52px", height: "52px",
+          borderRadius: "50%",
+          background: "linear-gradient(135deg, #7f77dd, #a78bfa)",
+          border: "none",
+          color: "white",
+          cursor: "pointer",
+          boxShadow: "0 4px 20px #7f77dd60",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          transition: "transform 0.15s ease, box-shadow 0.15s ease",
+          zIndex: 10,
+        }}
       >
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.8" strokeLinecap="round">
           <line x1="12" y1="5" x2="12" y2="19" />
           <line x1="5" y1="12" x2="19" y2="12" />
         </svg>
       </button>
+
       <BottomNav />
     </div>
   );
