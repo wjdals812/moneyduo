@@ -83,15 +83,21 @@ const AddTransactionPage = () => {
           />
         </div>
 
+        {/* 카테고리 UI */}
         <div>
-          <div className="text-xs text-[#8882cc] font-bold mb-1.5">카테고리</div>
+          <div className="flex justify-between items-center mb-1.5">
+            <div className="text-xs text-[#8882cc] font-bold">카테고리</div>
+            <button
+              onClick={() => navigate("/categories")}
+              className="text-xs text-[#7f77dd] font-bold bg-[#eeedfe] border border-[#c9c2f5] rounded-lg px-2 py-1 cursor-pointer"
+            >
+              관리 ⚙️
+            </button>
+          </div>
           <div className="flex flex-wrap gap-2">
             {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setCategory(cat)}
-                className={`px-3 py-2 rounded-xl text-xs font-bold cursor-pointer border-2 transition-colors ${category === cat ? "border-[#7f77dd] bg-[#eeedfe] text-[#534AB7]" : "border-[#c9c2f5] bg-white text-[#888]"}`}
-              >
+              <button key={cat} onClick={() => setCategory(cat)}
+                className={`px-3 py-2 rounded-xl text-xs font-bold cursor-pointer border-2 transition-colors ${category === cat ? "border-[#7f77dd] bg-[#eeedfe] text-[#534AB7]" : "border-[#c9c2f5] bg-white text-[#888]"}`}>
                 {cat}
               </button>
             ))}
@@ -107,7 +113,7 @@ const AddTransactionPage = () => {
                 onClick={() => setPaidBy(p)}
                 className={`flex-1 py-2.5 rounded-xl text-sm font-bold cursor-pointer border-2 transition-colors ${paidBy === p ? "border-[#7f77dd] bg-[#eeedfe] text-[#534AB7]" : "border-[#c9c2f5] bg-white text-[#afa9ec]"}`}
               >
-                {p === "me" ? "나" : p === "together" ? "같이" : "파트너"}
+                {p === "me" ? "나" : p === "together" ? "같이" : "짝꿍"}
               </button>
             ))}
           </div>

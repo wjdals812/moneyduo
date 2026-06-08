@@ -149,7 +149,7 @@ const HomePage = () => {
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
-            <div style={{ fontSize: "11px", color: "#ddd6fe", fontWeight: 700, marginBottom: "2px" }}>
+            <div  style={{ fontSize: "11px", color: "#ddd6fe", fontWeight: 700, marginBottom: "2px" }}>
               {monthLabel} 🗓️
             </div>
             <div style={{
@@ -325,16 +325,22 @@ const HomePage = () => {
                             {tx.description}
                           </div>
                           <div style={{ fontSize: "10px", color: "#b0a8e8", marginTop: "2px" }}>
-                            {tx.paidBy === "me" ? "🐰 나" : tx.paidBy === "partner" ? "🐻 파트너" : "💕 같이"}
+                            {tx.paidBy === "me" ? "🐰 나" : tx.paidBy === "partner" ? "🐻 짝꿍" : "💕 같이"}
                           </div>
                         </div>
                         <div style={{
                           fontSize: "13px", fontWeight: 900,
                           color: tx.type === "expense" ? "#d4537e" : "#3B8C3B",
                           whiteSpace: "nowrap",
-                        }}>
+                          }}>
                           {tx.type === "expense" ? "-" : "+"}{tx.amount.toLocaleString()}원
                         </div>
+                        <button
+                          onClick={() => navigate(`/edit/${tx.id}`)}
+                          style={{ fontSize: "11px", color: "#b0a8e8", background: "none", border: "none", cursor: "pointer" }}
+                        >
+                          수정
+                        </button>
                       </div>
                     ))}
                   </div>
