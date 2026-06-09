@@ -110,8 +110,8 @@ const LoginPage = () => {
           to { opacity: 1; transform: translateY(0); }
         }
         @keyframes btnPop {
-          0%, 100% { transform: scale(1); box-shadow: 0 4px 20px #c9b4f540; }
-          50% { transform: scale(1.015); box-shadow: 0 8px 28px #c9b4f560; }
+          0%, 100% { transform: scale(1); box-shadow: 0 4px 20px #7f77dd40; }
+          50% { transform: scale(1.015); box-shadow: 0 8px 28px #7f77dd60; }
         }
         .login-btn:hover {
           transform: scale(1.04) !important;
@@ -210,7 +210,7 @@ const LoginPage = () => {
           onClick={handleGoogleLogin}
           style={{
             width: "100%",
-            background: "linear-gradient(135deg, #b8956a, #d4a574)",
+            background: "linear-gradient(135deg, #7f77dd, #a78bfa)",
             border: "none",
             borderRadius: "18px",
             padding: "15px 24px",

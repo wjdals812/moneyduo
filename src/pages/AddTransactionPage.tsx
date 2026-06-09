@@ -53,31 +53,32 @@ const AddTransactionPage = () => {
   return (
     <div style={{
       minHeight: "100svh",
-      background: "linear-gradient(160deg, #f5f0ff 0%, #fff0f7 50%, #f0f4ff 100%)",
+      background: "#fdfcf9",
       maxWidth: "400px",
       margin: "0 auto",
       paddingBottom: "40px",
     }}>
 
       <div style={{
-        background: "linear-gradient(135deg, #7f77dd 0%, #a78bfa 100%)",
+        background: "#ffffff",
         padding: "28px 20px 36px",
         borderRadius: "0 0 32px 32px",
-        boxShadow: "0 8px 32px #7f77dd40",
+        boxShadow: "0 4px 16px rgba(0,0,0,0.06)",
         display: "flex",
         alignItems: "center",
         gap: "12px",
       }}>
         <button onClick={() => navigate("/home")} style={{
-          background: "rgba(255,255,255,0.15)",
-          border: "1.5px solid rgba(255,255,255,0.3)",
+          background: "#f2f0fa",
+          border: "1.5px solid rgba(155, 142, 196, 0.3)",
           borderRadius: "12px",
-          color: "white", fontSize: "16px",
+          color: "#7A6FA8",
+          fontSize: "16px",
           width: "36px", height: "36px",
           cursor: "pointer",
           display: "flex", alignItems: "center", justifyContent: "center",
         }}>←</button>
-        <div style={{ fontSize: "18px", fontWeight: 800, color: "white" }}>내역 추가 💜</div>
+        <div style={{ fontSize: "18px", fontWeight: 800, color: "#5a4e7a", }}>내역 추가 💜</div>
       </div>
 
       <div style={{ padding: "20px 16px", display: "flex", flexDirection: "column", gap: "16px" }}>

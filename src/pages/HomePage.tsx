@@ -141,11 +141,11 @@ const HomePage = () => {
         }
         .tx-card:hover {
           transform: translateX(3px);
-          box-shadow: 0 4px 20px rgba(190, 155, 110, 0.15) !important;
+          box-shadow: 0 4px 20px rgba(155, 142, 196, 0.15) !important;
         }
         .fab-btn:hover {
           transform: scale(1.1) !important;
-          box-shadow: 0 8px 28px rgba(184, 149, 106, 0.4) !important;
+          box-shadow: 0 8px 28px rgba(155, 142, 196, 0.4) !important;
         }
         .fab-btn:active {
           transform: scale(0.95) !important;
@@ -229,10 +229,10 @@ const HomePage = () => {
                 style={{
                   all: "unset",
                   padding: "8px 12px",
-                  background: "#fff7e8",
-                  border: "1px solid rgba(148, 120, 90, 0.12)",
+                  background: "linear-gradient(135deg, #9B8EC4, #B8AEDE)",
+                  border: "none",
+                  color: "white",
                   borderRadius: "12px",
-                  color: "#7a5a3f",
                   cursor: "pointer",
                   fontSize: "12px",
                   fontWeight: 800,
@@ -251,8 +251,8 @@ const HomePage = () => {
         background: "rgba(255,255,255,0.80)",
         backdropFilter: "blur(16px)",
         borderRadius: "20px",
-        border: "2px solid rgba(201,194,245,0.45)",
-        boxShadow: "0 4px 24px #c9b4f522",
+        border: "2px solid rgba(184, 174, 222, 0.35)",
+        boxShadow: "0 4px 24px #B8AEDE22",
         overflow: "hidden",
         position: "relative",
         zIndex: 2,
@@ -264,12 +264,12 @@ const HomePage = () => {
           {[
             { label: "수입", value: `+${totalIncome.toLocaleString()}`, color: "#3B8C3B", bg: "#f0fdf4" },
             { label: "지출", value: `-${totalExpense.toLocaleString()}`, color: "#d4537e", bg: "#fff0f6" },
-            { label: "순액", value: `${net >= 0 ? "+" : ""}${net.toLocaleString()}`, color: net >= 0 ? "#6B5CE7" : "#d4537e", bg: net >= 0 ? "#f5f0ff" : "#fff0f6" },
+            { label: "순액", value: `${net >= 0 ? "+" : ""}${net.toLocaleString()}`, color: net >= 0 ? "#7A6FA8" : "#d4537e", bg: net >= 0 ? "#f2f0fa" : "#fff0f6" },
           ].map((item, i) => (
             <div key={i} style={{
               display: "flex", flexDirection: "column", alignItems: "center",
               padding: "14px 4px",
-              borderRight: i < 2 ? "1.5px solid #ede9fe" : "none",
+              borderRight: i < 2 ? "1.5px solid #e8e4f5" : "none",
               background: item.bg,
             }}>
               <span style={{ fontSize: "10px", color: "#9e99cc", fontWeight: 800, marginBottom: "4px" }}>
@@ -291,9 +291,9 @@ const HomePage = () => {
           animation: "fadeUp 0.5s 0.2s ease both", opacity: 0, animationFillMode: "forwards",
         }}>
           <span style={{
-            fontSize: "16px", fontWeight: 700, color: "#6B5CE7",
+            fontSize: "16px", fontWeight: 700, color: "#7A6FA8",
           }}>최근 내역</span>
-          <div style={{ flex: 1, height: "1.5px", background: "linear-gradient(to right, #ddd6fe, transparent)" }} />
+          <div style={{ flex: 1, height: "1.5px", background: "linear-gradient(to right, #e8e4f5, transparent)" }} />
           <span style={{ fontSize: "13px" }}>📋</span>
         </div>
 
@@ -323,12 +323,12 @@ const HomePage = () => {
                     marginBottom: "10px",
                   }}>
                     <div style={{
-                      background: "linear-gradient(135deg, #7f77dd, #a78bfa)",
+                      background: "linear-gradient(135deg, #9B8EC4, #B8AEDE)",
                       borderRadius: "10px",
                       padding: "3px 10px",
                       fontSize: "10px", fontWeight: 800, color: "white",
                       whiteSpace: "nowrap",
-                      boxShadow: "0 2px 8px #7f77dd30",
+                      boxShadow: "0 2px 8px #9B8EC430",
                     }}>
                       {formatDate(date)}
                     </div>
@@ -345,7 +345,7 @@ const HomePage = () => {
                   <div style={{
                     display: "flex", flexDirection: "column", gap: "8px",
                     paddingLeft: "10px",
-                    borderLeft: "2.5px solid #ddd6fe",
+                    borderLeft: "2.5px solid #e4dff5",
                     marginLeft: "4px",
                   }}>
                     {txs.map((tx) => (
@@ -356,7 +356,7 @@ const HomePage = () => {
                           background: "rgba(255,255,255,0.75)",
                           backdropFilter: "blur(8px)",
                           borderRadius: "16px",
-                          border: "1.5px solid rgba(201,194,245,0.4)",
+                          border: "1.5px solid rgba(184,174,222,0.35)",
                           padding: "11px 14px",
                           display: "flex", alignItems: "center", gap: "12px",
                           cursor: "default",
@@ -416,11 +416,11 @@ const HomePage = () => {
           bottom: "88px", right: "calc(50% - 184px)",
           width: "52px", height: "52px",
           borderRadius: "50%",
-          background: "linear-gradient(135deg, #7f77dd, #a78bfa)",
+          background: "linear-gradient(135deg, #9B8EC4, #B8AEDE)",
           border: "none",
           color: "white",
           cursor: "pointer",
-          boxShadow: "0 4px 20px #7f77dd60",
+          boxShadow: "0 4px 20px #9B8EC460",
           display: "flex", alignItems: "center", justifyContent: "center",
           transition: "transform 0.15s ease, box-shadow 0.15s ease",
           zIndex: 10,
@@ -480,7 +480,7 @@ const HomePage = () => {
                       navigator.clipboard?.writeText(inviteCode);
                       alert("코드가 복사되었습니다.");
                     }}
-                    style={{ padding: "8px 10px", borderRadius: 8, background: "#7f77dd", color: "white", border: "none", cursor: "pointer" }}
+                    style={{ padding: "8px 10px", borderRadius: 8, background: "#9B8EC4", color: "white", border: "none", cursor: "pointer" }}
                   >복사</button>
                 </div>
               </div>
