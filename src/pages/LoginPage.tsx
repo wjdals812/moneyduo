@@ -17,7 +17,8 @@ const LoginPage = () => {
   return (
     <div style={{
       minHeight: "100svh",
-      background: "linear-gradient(160deg, #f5f0ff 0%, #fff0f7 50%, #f0f4ff 100%)",
+      background: "linear-gradient(180deg, #fbf3e7 0%, #f7efe3 10%, #fdf9f4 100%)",
+      backgroundImage: "repeating-linear-gradient(180deg, transparent, transparent 28px, rgba(190, 155, 110, 0.05) 29px, transparent 30px)",
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
@@ -31,19 +32,19 @@ const LoginPage = () => {
 
       {/* 배경 장식 원들 */}
       <div style={{
-        position: "absolute", top: "-60px", right: "-40px",
-        width: "200px", height: "200px",
+        position: "absolute", top: "-80px", right: "-60px",
+        width: "280px", height: "280px",
         borderRadius: "50%",
-        background: "radial-gradient(circle, #e8d5ff88, #ffd6ee44)",
-        filter: "blur(30px)",
+        background: "radial-gradient(circle, rgba(190, 155, 110, 0.18), transparent)",
+        filter: "blur(50px)",
         pointerEvents: "none",
       }} />
       <div style={{
-        position: "absolute", bottom: "60px", left: "-60px",
-        width: "220px", height: "220px",
+        position: "absolute", bottom: "80px", left: "-80px",
+        width: "260px", height: "260px",
         borderRadius: "50%",
-        background: "radial-gradient(circle, #d6e4ff66, #ffd6f044)",
-        filter: "blur(35px)",
+        background: "radial-gradient(circle, rgba(210, 170, 120, 0.14), transparent)",
+        filter: "blur(50px)",
         pointerEvents: "none",
       }} />
 
@@ -99,7 +100,7 @@ const LoginPage = () => {
         }
         .login-btn:hover {
           transform: scale(1.04) !important;
-          box-shadow: 0 8px 32px #c9b4f580 !important;
+          box-shadow: 0 8px 32px rgba(184, 149, 106, 0.3) !important;
         }
         .login-btn:active {
           transform: scale(0.97) !important;
@@ -108,17 +109,17 @@ const LoginPage = () => {
 
       {/* 메인 카드 */}
       <div style={{
-        background: "rgba(255,255,255,0.72)",
-        backdropFilter: "blur(16px)",
+        background: "rgba(255,255,255,0.88)",
+        backdropFilter: "blur(12px)",
         borderRadius: "32px",
-        border: "2px solid rgba(201,194,245,0.5)",
+        border: "1.5px solid rgba(190, 155, 110, 0.25)",
         padding: "44px 36px 40px",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         width: "100%",
         maxWidth: "320px",
-        boxShadow: "0 8px 40px #c9b4f520, 0 2px 8px #f0d6ff18",
+        boxShadow: "0 12px 40px rgba(120, 85, 48, 0.1), 0 2px 8px rgba(190, 155, 110, 0.08)",
         animation: "fadeUp 0.6s ease both",
         position: "relative",
         zIndex: 1,
@@ -147,7 +148,7 @@ const LoginPage = () => {
         <h1 style={{
           fontSize: "32px",
           fontWeight: 700,
-          color: "#6B5CE7",
+          color: "#6B5F3F",
           margin: "10px 0 4px",
           letterSpacing: "-0.5px",
           animation: "fadeUp 0.6s 0.2s ease both",
@@ -160,7 +161,7 @@ const LoginPage = () => {
         {/* 서브타이틀 */}
         <p style={{
           fontSize: "13px",
-          color: "#b0a8e8",
+          color: "#9e8a6f",
           marginBottom: "32px",
           textAlign: "center",
           lineHeight: 1.6,
@@ -169,7 +170,7 @@ const LoginPage = () => {
           animationFillMode: "forwards",
         }}>
           우리 둘이 함께하는<br />
-          <span style={{ color: "#c9a8e8", fontWeight: 700 }}>가계부 💕</span>
+          <span style={{ color: "#8b7355", fontWeight: 700 }}>가계부 💕</span>
         </p>
 
         {/* 구분선 장식 */}
@@ -183,9 +184,9 @@ const LoginPage = () => {
           opacity: 0,
           animationFillMode: "forwards",
         }}>
-          <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, #ddd6fe)" }} />
+          <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, rgba(190, 155, 110, 0.3))" }} />
           <span style={{ fontSize: 14 }}>🌷</span>
-          <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, #ddd6fe)" }} />
+          <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, rgba(190, 155, 110, 0.3))" }} />
         </div>
 
         {/* 구글 로그인 버튼 */}
@@ -194,7 +195,7 @@ const LoginPage = () => {
           onClick={handleGoogleLogin}
           style={{
             width: "100%",
-            background: "linear-gradient(135deg, #7f77dd, #a78bfa)",
+            background: "linear-gradient(135deg, #b8956a, #d4a574)",
             border: "none",
             borderRadius: "18px",
             padding: "15px 24px",
@@ -223,7 +224,7 @@ const LoginPage = () => {
         {/* 하단 문구 */}
         <p style={{
           fontSize: "11px",
-          color: "#c9c2f5",
+          color: "#b3927d",
           marginTop: "18px",
           animation: "fadeUp 0.6s 0.5s ease both",
           opacity: 0,

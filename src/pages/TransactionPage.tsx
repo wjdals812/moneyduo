@@ -60,7 +60,8 @@ const TransactionPage = () => {
   return (
     <div style={{
       minHeight: "100svh",
-      background: "linear-gradient(160deg, #f5f0ff 0%, #fff0f7 50%, #f0f4ff 100%)",
+      background: "linear-gradient(180deg, #fbf3e7 0%, #f7efe3 10%, #fdf9f4 100%)",
+      backgroundImage: "repeating-linear-gradient(180deg, transparent, transparent 28px, rgba(190, 155, 110, 0.05) 29px, transparent 30px)",
       maxWidth: "400px",
       margin: "0 auto",
       paddingBottom: "180px",
@@ -78,47 +79,55 @@ const TransactionPage = () => {
           50% { transform: translateY(-7px); }
         }
         .tx-card { transition: transform 0.15s ease, box-shadow 0.15s ease; }
-        .tx-card:hover { transform: translateX(3px); box-shadow: 0 4px 20px #c9b4f530 !important; }
+        .tx-card:hover { transform: translateX(3px); box-shadow: 0 4px 20px rgba(190, 155, 110, 0.15) !important; }
         .filter-btn { transition: all 0.18s ease; }
         .filter-btn:active { transform: scale(0.95); }
       `}</style>
 
       {/* 배경 빛망울 */}
       <div style={{
-        position: "fixed", top: "-80px", right: "-60px",
-        width: "260px", height: "260px", borderRadius: "50%",
-        background: "radial-gradient(circle, #e0d5ff55, transparent)",
-        filter: "blur(40px)", pointerEvents: "none", zIndex: 0,
+        position: "fixed", top: "-100px", right: "-80px",
+        width: "300px", height: "300px", borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(190, 155, 110, 0.15), transparent)",
+        filter: "blur(50px)", pointerEvents: "none", zIndex: 0,
       }} />
       <div style={{
-        position: "fixed", bottom: "120px", left: "-80px",
-        width: "240px", height: "240px", borderRadius: "50%",
-        background: "radial-gradient(circle, #ffd6ee44, transparent)",
-        filter: "blur(40px)", pointerEvents: "none", zIndex: 0,
+        position: "fixed", bottom: "150px", left: "-100px",
+        width: "280px", height: "280px", borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(210, 170, 120, 0.12), transparent)",
+        filter: "blur(50px)", pointerEvents: "none", zIndex: 0,
       }} />
 
       {/* 헤더 */}
       <div style={{
-        background: "linear-gradient(135deg, #7f77dd 0%, #a78bfa 100%)",
+        background: "#ffffff",
         padding: "28px 20px 36px",
         borderRadius: "0 0 32px 32px",
-        boxShadow: "0 8px 32px #7f77dd40",
-        position: "relative",
-        overflow: "hidden",
+        boxShadow: "0 12px 36px rgba(0, 0, 0, 0.08)",
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+        borderBottom: "2px dashed rgba(196, 196, 196, 0.28)",
         animation: "fadeUp 0.5s ease both",
       }}>
-        <div style={{
-          position: "absolute", top: "-30px", right: "-30px",
-          width: "120px", height: "120px", borderRadius: "50%",
-          background: "rgba(255,255,255,0.1)", pointerEvents: "none",
-        }} />
-        <div style={{
-          fontSize: "26px", fontWeight: 700, color: "white",
-        }}>
-          내역 📋
-        </div>
-        <div style={{ fontSize: "11px", color: "#ddd6fe", marginTop: "2px" }}>
-          우리 둘의 소비 기록 💕
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          {/* <button onClick={() => navigate(-1)} style={{
+            all: "unset",
+            width: "36px",
+            height: "36px",
+            borderRadius: "12px",
+            background: "#fff7e8",
+            border: "1px solid rgba(148, 120, 90, 0.24)",
+            color: "#7a5a3f",
+            fontSize: "16px",
+            cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 4px 10px rgba(120, 85, 48, 0.12)",
+          }}>←</button> */}
+          <div style={{ color: "#5d4732" }}>
+            <div style={{ fontSize: "18px", fontWeight: 800 }}>내역</div>
+            <div style={{ fontSize: "12px", opacity: 0.85 }}>우리 둘의 소비 기록 💕</div>
+          </div>
         </div>
       </div>
 
@@ -176,8 +185,8 @@ const TransactionPage = () => {
             animation: "fadeUp 0.5s 0.2s ease both", opacity: 0, animationFillMode: "forwards",
           }}>
             <div style={{ fontSize: 40, marginBottom: 10, animation: "float0 2.5s ease-in-out infinite" }}>🐾</div>
-            <div style={{ fontSize: "13px", color: "#b0a8e8", fontWeight: 700 }}>내역이 없어요</div>
-            <div style={{ fontSize: "11px", color: "#cfc8f0", marginTop: 4 }}>첫 번째 내역을 추가해보세요</div>
+            <div style={{ fontSize: "13px", color: "#9e8a6f", fontWeight: 700 }}>내역이 없어요</div>
+            <div style={{ fontSize: "11px", color: "#b8956a", marginTop: 4 }}>처음 내역을 추가해보세요</div>
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>

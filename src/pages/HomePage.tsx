@@ -71,7 +71,8 @@ const HomePage = () => {
   return (
     <div style={{
       minHeight: "100svh",
-      background: "linear-gradient(160deg, #f5f0ff 0%, #fff0f7 50%, #f0f4ff 100%)",
+      background: "linear-gradient(180deg, #fbf3e7 0%, #f7efe3 10%, #fdf9f4 100%)",
+      backgroundImage: "repeating-linear-gradient(180deg, transparent, transparent 28px, rgba(190, 155, 110, 0.05) 29px, transparent 30px)",
       maxWidth: "400px",
       margin: "0 auto",
       paddingBottom: "180px",
@@ -93,89 +94,64 @@ const HomePage = () => {
         }
         .tx-card:hover {
           transform: translateX(3px);
-          box-shadow: 0 4px 20px #c9b4f530 !important;
+          box-shadow: 0 4px 20px rgba(190, 155, 110, 0.15) !important;
         }
         .fab-btn:hover {
           transform: scale(1.1) !important;
-          box-shadow: 0 8px 28px #7f77dd80 !important;
+          box-shadow: 0 8px 28px rgba(184, 149, 106, 0.4) !important;
         }
         .fab-btn:active {
           transform: scale(0.95) !important;
         }
         .logout-btn:hover {
-          background: rgba(255,255,255,0.2) !important;
+          background: rgba(90, 71, 50, 0.15) !important;
         }
       `}</style>
 
       {/* 배경 빛망울 */}
       <div style={{
-        position: "fixed", top: "-80px", right: "-60px",
-        width: "260px", height: "260px", borderRadius: "50%",
-        background: "radial-gradient(circle, #e0d5ff55, transparent)",
-        filter: "blur(40px)", pointerEvents: "none", zIndex: 0,
+        position: "fixed", top: "-100px", right: "-80px",
+        width: "300px", height: "300px", borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(190, 155, 110, 0.15), transparent)",
+        filter: "blur(50px)", pointerEvents: "none", zIndex: 0,
       }} />
       <div style={{
-        position: "fixed", bottom: "120px", left: "-80px",
-        width: "240px", height: "240px", borderRadius: "50%",
-        background: "radial-gradient(circle, #ffd6ee44, transparent)",
-        filter: "blur(40px)", pointerEvents: "none", zIndex: 0,
+        position: "fixed", bottom: "150px", left: "-100px",
+        width: "280px", height: "280px", borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(210, 170, 120, 0.12), transparent)",
+        filter: "blur(50px)", pointerEvents: "none", zIndex: 0,
       }} />
 
       {/* 헤더 */}
       <div style={{
-        background: "linear-gradient(135deg, #7f77dd 0%, #a78bfa 100%)",
+        background: "#ffffff",
         padding: "28px 20px 36px",
         borderRadius: "0 0 32px 32px",
-        marginBottom: "0",
-        position: "relative",
-        overflow: "hidden",
-        boxShadow: "0 8px 32px #7f77dd40",
+        boxShadow: "0 12px 36px rgba(0, 0, 0, 0.08)",
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+        borderBottom: "2px dashed rgba(196, 196, 196, 0.28)",
         animation: "fadeUp 0.5s ease both",
       }}>
-        {/* 헤더 장식 원 */}
-        <div style={{
-          position: "absolute", top: "-30px", right: "-30px",
-          width: "120px", height: "120px", borderRadius: "50%",
-          background: "rgba(255,255,255,0.1)", pointerEvents: "none",
-        }} />
-        <div style={{
-          position: "absolute", bottom: "-20px", right: "60px",
-          width: "80px", height: "80px", borderRadius: "50%",
-          background: "rgba(255,255,255,0.07)", pointerEvents: "none",
-        }} />
-
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-          <div>
-            <div  style={{ fontSize: "11px", color: "#ddd6fe", fontWeight: 700, marginBottom: "2px" }}>
-              {monthLabel} 🗓️
-            </div>
-            <div style={{
-              fontSize: "26px", fontWeight: 700,
-              color: "white", lineHeight: 1.2,
-            }}>
-              MoneyDuo 💜
-            </div>
-            <div style={{ fontSize: "12px", color: "#ddd6fe", marginTop: "4px" }}>
-              안녕하세요, <span style={{ fontWeight: 800, color: "white" }}>{userName}</span>님! 🐰
-            </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          {/* <button onClick={() => navigate(-1)} style={{
+            all: "unset",
+            width: "36px",
+            height: "36px",
+            borderRadius: "12px",
+            background: "#fff7e8",
+            border: "1px solid rgba(148, 120, 90, 0.24)",
+            color: "#7a5a3f",
+            fontSize: "16px",
+            cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 4px 10px rgba(120, 85, 48, 0.12)",
+          }}>←</button> */}
+          <div style={{ color: "#5d4732" }}>
+            <div style={{ fontSize: "18px", fontWeight: 800 }}>MoneyDuo</div>
+            <div style={{ fontSize: "12px", opacity: 0.85 }}>우리 둘의 재정 현황</div>
           </div>
-          <button
-            className="logout-btn"
-            onClick={handleLogout}
-            style={{
-              background: "rgba(255,255,255,0.12)",
-              border: "1.5px solid rgba(255,255,255,0.3)",
-              borderRadius: "12px",
-              color: "white",
-              fontSize: "11px",
-              fontWeight: 700,
-              padding: "6px 12px",
-              cursor: "pointer",
-              transition: "background 0.15s",
-            }}
-          >
-            로그아웃
-          </button>
         </div>
       </div>
 
@@ -292,16 +268,12 @@ const HomePage = () => {
                           borderRadius: "16px",
                           border: "1.5px solid rgba(201,194,245,0.4)",
                           padding: "11px 14px",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "12px",
-                          transition: "transform 0.15s ease, box-shadow 0.15s ease",
+                          display: "flex", alignItems: "center", gap: "12px",
                           cursor: "default",
                         }}
                       >
                         <div style={{
-                          width: "38px", height: "38px",
-                          borderRadius: "14px",
+                          width: "38px", height: "38px", borderRadius: "14px",
                           background: tx.type === "expense"
                             ? "linear-gradient(135deg, #ffe4f0, #ffd6ee)"
                             : "linear-gradient(135deg, #e4f5e4, #d6f0d6)",
