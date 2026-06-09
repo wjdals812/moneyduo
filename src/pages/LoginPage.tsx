@@ -1,10 +1,17 @@
-import { signInWithPopup } from "firebase/auth";
+import { signInWithPopup, onAuthStateChanged } from "firebase/auth";
 import { auth, provider, db } from "../firebase";
 import { useNavigate } from "react-router-dom";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
+import { useEffect } from "react";
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) navigate("/home");
+    });
+    return () => unsubscribe();
+  }, [navigate]);
 
   const handleGoogleLogin = async () => {
     try {
