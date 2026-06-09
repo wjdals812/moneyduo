@@ -118,8 +118,7 @@ const HomePage = () => {
   return (
     <div style={{
       minHeight: "100svh",
-      background: "linear-gradient(180deg, #fbf3e7 0%, #f7efe3 10%, #fdf9f4 100%)",
-      backgroundImage: "repeating-linear-gradient(180deg, transparent, transparent 28px, rgba(190, 155, 110, 0.05) 29px, transparent 30px)",
+      background: "#fdfcf9",
       maxWidth: "400px",
       margin: "0 auto",
       paddingBottom: "180px",
@@ -197,7 +196,7 @@ const HomePage = () => {
           }}>←</button> */}
           <div style={{ color: "#5d4732" }}>
             <div style={{ fontSize: "18px", fontWeight: 800 }}>MoneyDuo</div>
-            <div style={{ fontSize: "12px", opacity: 0.85 }}>우리 둘의 재정 현황</div>
+            <div style={{ fontSize: "12px", fontWeight: 600, opacity: 0.85 }}>우리 둘의 재정 현황</div>
           </div>
           <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
             {partnerName ? (
@@ -272,13 +271,13 @@ const HomePage = () => {
               borderRight: i < 2 ? "1.5px solid #e8e4f5" : "none",
               background: item.bg,
             }}>
-              <span style={{ fontSize: "10px", color: "#9e99cc", fontWeight: 800, marginBottom: "4px" }}>
+              <span style={{ fontSize: "10px", color: "#6b65a8", fontWeight: 800, marginBottom: "4px" }}>
                 {item.label}
               </span>
               <span style={{ fontSize: "13px", fontWeight: 900, color: item.color, letterSpacing: "-0.3px" }}>
                 {item.value}
               </span>
-              <span style={{ fontSize: "9px", color: "#c4bfea", marginTop: "1px" }}>원</span>
+              <span style={{ fontSize: "10px", fontWeight: 800, color: "#6b65a8", marginTop: "1px" }}>원</span>
             </div>
           ))}
         </div>
@@ -303,7 +302,7 @@ const HomePage = () => {
             animation: "fadeUp 0.5s 0.3s ease both", opacity: 0, animationFillMode: "forwards",
           }}>
             <div style={{ fontSize: 40, marginBottom: 10, animation: "float0 2.5s ease-in-out infinite" }}>🐾</div>
-            <div style={{ fontSize: "13px", color: "#b0a8e8", fontWeight: 700 }}>아직 내역이 없어요</div>
+            <div style={{ fontSize: "13px", color: "#9e99cc", fontWeight: 700 }}>아직 내역이 없어요</div>
             <div style={{ fontSize: "11px", color: "#cfc8f0", marginTop: 4 }}>첫 번째 내역을 추가해보세요 💕</div>
           </div>
         ) : (
@@ -380,7 +379,7 @@ const HomePage = () => {
                           }}>
                             {tx.description}
                           </div>
-                          <div style={{ fontSize: "10px", color: "#b0a8e8", marginTop: "2px" }}>
+                          <div style={{ fontSize: "11px", fontWeight: 800, color: "#6b65a8", marginTop: "2px" }}>
                             {tx.paidBy === "me" ? "🐰 나" : tx.paidBy === "partner" ? "🐻 짝꿍" : "💕 같이"}
                           </div>
                         </div>
@@ -393,7 +392,7 @@ const HomePage = () => {
                         </div>
                         <button
                           onClick={() => navigate(`/edit/${tx.id}`)}
-                          style={{ fontSize: "11px", color: "#b0a8e8", background: "none", border: "none", cursor: "pointer" }}
+                          style={{ fontSize: "13px", fontWeight: 800, color: "#6b65a8", background: "none", border: "none", cursor: "pointer" }}
                         >
                           수정
                         </button>

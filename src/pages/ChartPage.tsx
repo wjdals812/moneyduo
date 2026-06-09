@@ -162,8 +162,7 @@ const ChartPage = () => {
     <div
       style={{
         minHeight: "100svh",
-        background: "linear-gradient(180deg, #fbf3e7 0%, #f7efe3 10%, #fdf9f4 100%)",
-        backgroundImage: "repeating-linear-gradient(180deg, transparent, transparent 28px, rgba(190, 155, 110, 0.05) 29px, transparent 30px)",
+        background: "#fdfcf9",
         maxWidth: "400px",
         margin: "0 auto",
         paddingBottom: "180px",
