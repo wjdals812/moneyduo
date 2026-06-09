@@ -126,7 +126,7 @@ const TransactionPage = () => {
           }}>←</button> */}
           <div style={{ color: "#5d4732" }}>
             <div style={{ fontSize: "18px", fontWeight: 800 }}>내역</div>
-            <div style={{ fontSize: "12px", opacity: 0.85 }}>우리 둘의 소비 기록 💕</div>
+            <div style={{ fontSize: "12px", fontWeight: 800, opacity: 0.85 }}>우리 둘의 소비 기록 💕</div>
           </div>
         </div>
       </div>
@@ -168,7 +168,7 @@ const TransactionPage = () => {
                 background: filter === f.key
                   ? "linear-gradient(135deg, #7f77dd, #a78bfa)"
                   : "transparent",
-                color: filter === f.key ? "white" : "#b0a8e8",
+                color: filter === f.key ? "white" : "#6b65a8",
                 boxShadow: filter === f.key ? "0 2px 10px #7f77dd40" : "none",
               }}
             >
@@ -256,7 +256,7 @@ const TransactionPage = () => {
                           }}>
                             {tx.description}
                           </div>
-                          <div style={{ fontSize: "10px", color: "#b0a8e8", marginTop: "2px" }}>
+                          <div style={{ fontSize: "10px", fontWeight: "800", color: "#6b65a8", marginTop: "2px" }}>
                             {tx.paidBy === "me" ? "🐰 나" : tx.paidBy === "partner" ? "🐻 짝꿍" : "💕 같이"} · {tx.category}
                           </div>
                         </div>

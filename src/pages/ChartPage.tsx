@@ -195,7 +195,7 @@ const ChartPage = () => {
           }}>←</button> */}
           <div style={{ color: "#5d4732" }}>
             <div style={{ fontSize: "18px", fontWeight: 800 }}>통계</div>
-            <div style={{ fontSize: "12px", opacity: 0.85 }}>월별 지출/수입 분석</div>
+            <div style={{ fontSize: "12px", fontWeight: "800", opacity: 0.85 }}>월별 지출/수입 분석</div>
           </div>
         </div>
       </div>
@@ -337,7 +337,7 @@ const ChartPage = () => {
               boxShadow: "0 6px 16px rgba(71, 85, 105, 0.08)",
             }}
           >
-            <p style={{ fontSize: "12px", opacity: 0.9, marginBottom: "8px" }}>수입</p>
+            <p style={{ fontSize: "12px", fontWeight: "800", opacity: 0.9, marginBottom: "8px" }}>수입</p>
             <p style={{ fontSize: "20px", fontWeight: "900" }}>₩{totalIncome.toLocaleString()}</p>
           </div>
           <div
@@ -351,7 +351,7 @@ const ChartPage = () => {
               boxShadow: "0 6px 16px rgba(71, 85, 105, 0.08)",
             }}
           >
-            <p style={{ fontSize: "12px", opacity: 0.9, marginBottom: "8px" }}>지출</p>
+            <p style={{ fontSize: "12px", fontWeight: "800", opacity: 0.9, marginBottom: "8px" }}>지출</p>
             <p style={{ fontSize: "20px", fontWeight: "900" }}>₩{totalExpense.toLocaleString()}</p>
           </div>
         </div>
@@ -397,7 +397,7 @@ const ChartPage = () => {
               </div>
             </>
           ) : (
-            <p style={{ textAlign: "center", color: "#999", padding: "40px 0" }}>이 달의 지출이 없습니다</p>
+            <p style={{ textAlign: "center", color: "#999", fontWeight: "800", padding: "40px 0" }}>이 달의 지출이 없습니다</p>
           )}
         </div>
 
@@ -442,7 +442,7 @@ const ChartPage = () => {
               </div>
             </>
           ) : (
-            <p style={{ textAlign: "center", color: "#999", padding: "40px 0" }}>이 달의 수입이 없습니다</p>
+            <p style={{ textAlign: "center", color: "#999", fontWeight: "800", padding: "40px 0" }}>이 달의 수입이 없습니다</p>
           )}
         </div>
       </div>
