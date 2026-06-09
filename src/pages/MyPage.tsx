@@ -96,8 +96,8 @@ const ProfilePage = () => {
         borderBottom: "2px dashed rgba(196,196,196,0.28)",
         animation: "fadeUp 0.5s ease both",
       }}>
-        <div style={{ fontSize: "18px", fontWeight: 800, color: "#5d4732" }}>내 정보</div>
-        <div style={{ fontSize: "12px", color: "#9e8a6f", marginTop: 2 }}>프로필 및 설정</div>
+        <div style={{ fontSize: "18px", fontWeight: 800, color: "#3C3489" }}>내 정보</div>
+        <div style={{ fontSize: "12px", fontWeight: 800, color: "#b0a8e8", marginTop: 2 }}>프로필 및 설정</div>
       </div>
 
       <div style={{ padding: "24px 16px", display: "flex", flexDirection: "column", gap: "16px" }}>

@@ -89,7 +89,7 @@ const SchedulePage = () => {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const today = toDateStr(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
 
-  const scheduleDates = new Set(schedules.map((s) => s.date));
+  const scheduleDates = new Set(schedules.filter((s) => s.type === "schedule").map((s) => s.date));
   const anniversaryDates = new Set(schedules.filter((s) => s.type === "anniversary").map((s) => s.date));
 
   const focusedSchedules = focusedDate
@@ -198,14 +198,11 @@ const SchedulePage = () => {
                     : "#3C3489",
                 }}>{d}</span>
                 <div style={{ display: "flex", gap: "2px", marginTop: "3px", height: "6px" }}>
-                  {hasSchedule && !hasAnniversary && (
+                  {hasSchedule && (
                     <div style={{ width: 5, height: 5, borderRadius: "50%", background: isFocused ? "white" : "#7f77dd" }} />
                   )}
                   {hasAnniversary && (
                     <div style={{ width: 5, height: 5, borderRadius: "50%", background: isFocused ? "white" : "#d4537e" }} />
-                  )}
-                  {hasSchedule && hasAnniversary && (
-                    <div style={{ width: 5, height: 5, borderRadius: "50%", background: isFocused ? "white" : "#7f77dd" }} />
                   )}
                 </div>
               </div>
@@ -266,12 +263,12 @@ const SchedulePage = () => {
             <div style={{
               minWidth: "56px",
               background: item.type === "anniversary"
-                ? "linear-gradient(135deg, #f472b6, #d4537e)"
-                : "linear-gradient(135deg, #7f77dd, #a78bfa)",
+                ? "linear-gradient(135deg, #fce7f3, #fad0e4)"
+                : "linear-gradient(135deg, #ede9fe, #ddd6fe)",
               borderRadius: "14px",
               padding: "8px 4px",
               textAlign: "center",
-              color: "white",
+              color: item.type === "anniversary" ? "#d4537e" : "#7f77dd",
               fontSize: "13px", fontWeight: 900,
             }}>
               {item.type === "anniversary" ? "💕" : calcDday(item.date)}

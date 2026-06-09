@@ -193,9 +193,9 @@ const ChartPage = () => {
             display: "flex", alignItems: "center", justifyContent: "center",
             boxShadow: "0 4px 10px rgba(120, 85, 48, 0.12)",
           }}>←</button> */}
-          <div style={{ color: "#5d4732" }}>
-            <div style={{ fontSize: "18px", fontWeight: 800 }}>통계</div>
-            <div style={{ fontSize: "12px", fontWeight: "800", opacity: 0.85 }}>월별 지출/수입 분석</div>
+          <div>
+            <div style={{ fontSize: "20px", fontWeight: 800, color: "#3C3489" }}>통계</div>
+            <div style={{ fontSize: "13px", fontWeight: 800, color: "#b0a8e8", opacity: 0.85 }}>월별 지출/수입 분석</div>
           </div>
         </div>
       </div>

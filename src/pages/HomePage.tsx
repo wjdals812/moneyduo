@@ -194,9 +194,9 @@ const HomePage = () => {
             display: "flex", alignItems: "center", justifyContent: "center",
             boxShadow: "0 4px 10px rgba(120, 85, 48, 0.12)",
           }}>←</button> */}
-          <div style={{ color: "#5d4732" }}>
-            <div style={{ fontSize: "18px", fontWeight: 800 }}>MoneyDuo</div>
-            <div style={{ fontSize: "12px", fontWeight: 600, opacity: 0.85 }}>우리 둘의 재정 현황</div>
+          <div>
+            <div style={{ fontSize: "20px", fontWeight: 800, color: "#3C3489" }}>MoneyDuo</div>
+            <div style={{ fontSize: "13px", fontWeight: 600, color: "#b0a8e8", opacity: 0.85 }}>우리 둘의 재정 현황</div>
           </div>
           <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
             {partnerName ? (
