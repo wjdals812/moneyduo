@@ -1,9 +1,17 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap');
+@font-face {
+  font-family: 'MyFont';
+  src: url('./assets/fonts/SD유니세프해맑음체TT.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
 
 html, body, #root {
   width: 100%;
   height: 100%;
-  background: #faf9ff;
+  background: #f8fafc;
+  font-family: 'MyFont', sans-serif;
 }
 
 button {

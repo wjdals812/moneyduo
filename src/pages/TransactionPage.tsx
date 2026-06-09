@@ -63,13 +63,11 @@ const TransactionPage = () => {
       background: "linear-gradient(160deg, #f5f0ff 0%, #fff0f7 50%, #f0f4ff 100%)",
       maxWidth: "400px",
       margin: "0 auto",
-      fontFamily: "'Nunito', 'Apple SD Gothic Neo', sans-serif",
       paddingBottom: "100px",
       position: "relative",
     }}>
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Gaegu:wght@700&display=swap');
 
         @keyframes fadeUp {
           from { opacity: 0; transform: translateY(14px); }
@@ -115,7 +113,6 @@ const TransactionPage = () => {
           background: "rgba(255,255,255,0.1)", pointerEvents: "none",
         }} />
         <div style={{
-          fontFamily: "'Gaegu', sans-serif",
           fontSize: "26px", fontWeight: 700, color: "white",
         }}>
           내역 📋
@@ -154,7 +151,6 @@ const TransactionPage = () => {
                 border: "none",
                 fontSize: "11px",
                 fontWeight: 800,
-                fontFamily: "'Nunito', sans-serif",
                 cursor: "pointer",
                 display: "flex",
                 flexDirection: "column",

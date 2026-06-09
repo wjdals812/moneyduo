@@ -22,7 +22,6 @@ const LoginPage = () => {
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
-      fontFamily: "'Nunito', 'Apple SD Gothic Neo', sans-serif",
       padding: "24px",
       position: "relative",
       overflow: "hidden",
@@ -72,7 +71,6 @@ const LoginPage = () => {
       ))}
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Gaegu:wght@700&display=swap');
 
         @keyframes float0 {
           0%, 100% { transform: translateY(0px) rotate(0deg); }
@@ -147,7 +145,6 @@ const LoginPage = () => {
 
         {/* 타이틀 */}
         <h1 style={{
-          fontFamily: "'Gaegu', 'Nunito', sans-serif",
           fontSize: "32px",
           fontWeight: 700,
           color: "#6B5CE7",
@@ -204,7 +201,6 @@ const LoginPage = () => {
             color: "white",
             fontSize: "14px",
             fontWeight: 800,
-            fontFamily: "'Nunito', sans-serif",
             cursor: "pointer",
             display: "flex",
             alignItems: "center",

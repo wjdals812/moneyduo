@@ -51,9 +51,7 @@ const CategoriesPage = () => {
       background: "linear-gradient(160deg, #f5f0ff 0%, #fff0f7 50%, #f0f4ff 100%)",
       maxWidth: "400px",
       margin: "0 auto",
-      fontFamily: "'Nunito', 'Apple SD Gothic Neo', sans-serif",
     }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap');`}</style>
 
       <div style={{
         background: "linear-gradient(135deg, #7f77dd 0%, #a78bfa 100%)",
@@ -116,7 +114,6 @@ const CategoriesPage = () => {
                 border: "2px solid #7f77dd",
                 fontSize: "13px", outline: "none",
                 background: "white",
-                fontFamily: "'Nunito', sans-serif",
               }}
             />
             <button onClick={handleAdd} style={{

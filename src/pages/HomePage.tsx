@@ -74,14 +74,11 @@ const HomePage = () => {
       background: "linear-gradient(160deg, #f5f0ff 0%, #fff0f7 50%, #f0f4ff 100%)",
       maxWidth: "400px",
       margin: "0 auto",
-      fontFamily: "'Nunito', 'Apple SD Gothic Neo', sans-serif",
       paddingBottom: "100px",
       position: "relative",
     }}>
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Gaegu:wght@700&display=swap');
-
         @keyframes fadeUp {
           from { opacity: 0; transform: translateY(16px); }
           to { opacity: 1; transform: translateY(0); }
@@ -153,7 +150,6 @@ const HomePage = () => {
               {monthLabel} 🗓️
             </div>
             <div style={{
-              fontFamily: "'Gaegu', sans-serif",
               fontSize: "26px", fontWeight: 700,
               color: "white", lineHeight: 1.2,
             }}>
@@ -175,7 +171,6 @@ const HomePage = () => {
               fontWeight: 700,
               padding: "6px 12px",
               cursor: "pointer",
-              fontFamily: "'Nunito', sans-serif",
               transition: "background 0.15s",
             }}
           >
@@ -230,7 +225,6 @@ const HomePage = () => {
           animation: "fadeUp 0.5s 0.2s ease both", opacity: 0, animationFillMode: "forwards",
         }}>
           <span style={{
-            fontFamily: "'Gaegu', sans-serif",
             fontSize: "16px", fontWeight: 700, color: "#6B5CE7",
           }}>최근 내역</span>
           <div style={{ flex: 1, height: "1.5px", background: "linear-gradient(to right, #ddd6fe, transparent)" }} />

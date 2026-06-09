@@ -74,10 +74,8 @@ const EditTransactionPage = () => {
       background: "linear-gradient(160deg, #f5f0ff 0%, #fff0f7 50%, #f0f4ff 100%)",
       maxWidth: "400px",
       margin: "0 auto",
-      fontFamily: "'Nunito', 'Apple SD Gothic Neo', sans-serif",
       paddingBottom: "40px",
     }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap');`}</style>
 
       <div style={{
         background: "linear-gradient(135deg, #7f77dd 0%, #a78bfa 100%)",
@@ -127,7 +125,6 @@ const EditTransactionPage = () => {
               borderRadius: "16px", border: "2px solid #c9c2f5",
               fontSize: "20px", fontWeight: 900, color: "#534AB7",
               outline: "none", background: "white",
-              fontFamily: "'Nunito', sans-serif",
             }} />
         </div>
 
@@ -140,7 +137,6 @@ const EditTransactionPage = () => {
               width: "100%", padding: "12px 16px", boxSizing: "border-box",
               borderRadius: "16px", border: "2px solid #c9c2f5",
               fontSize: "13px", outline: "none", background: "white",
-              fontFamily: "'Nunito', sans-serif",
             }} />
         </div>
 
@@ -195,7 +191,6 @@ const EditTransactionPage = () => {
               width: "100%", padding: "12px 16px", boxSizing: "border-box",
               borderRadius: "16px", border: "2px solid #c9c2f5",
               fontSize: "13px", outline: "none", background: "white",
-              fontFamily: "'Nunito', sans-serif",
             }} />
         </div>
 
