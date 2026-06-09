@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-// import LoginPage from "./pages/LoginPage";
+import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";
 // import TransactionPage from "./pages/TransactionPage";
 import ChartPage from "./pages/ChartPage";
@@ -13,8 +13,8 @@ const App = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {/* <Route path="/" element={<LoginPage />} /> */}
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<LoginPage />} />
+        {/* <Route path="/" element={<HomePage />} /> */}
         <Route path="/home" element={<HomePage />} />
         {/* <Route path="/transactions" element={<TransactionPage />} /> */}
         <Route path="/chart" element={<ChartPage />} />
