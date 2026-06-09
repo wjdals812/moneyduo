@@ -25,12 +25,12 @@ const formatDate = (dateStr: string) => {
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const [userName, setUserName] = useState("");
+  const [, setUserName] = useState("");
   const [showCoupleModal, setShowCoupleModal] = useState(false);
   const [inviteCode, setInviteCode] = useState("");
   const [inputCode, setInputCode] = useState("");
   const [isCreating, setIsCreating] = useState(false);
-  const [coupleInfo, setCoupleInfo] = useState<any>(null);
+  const [, setCoupleInfo] = useState<any>(null);
   const [partnerName, setPartnerName] = useState("");
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [totalExpense, setTotalExpense] = useState(0);
@@ -105,13 +105,13 @@ const HomePage = () => {
     };
   }, [navigate]);
 
-  const handleLogout = async () => {
-    await auth.signOut();
-    navigate("/");
-  };
+  // const handleLogout = async () => {
+  //   await auth.signOut();
+  //   navigate("/");
+  // };
 
-  const now = new Date();
-  const monthLabel = `${now.getFullYear()}년 ${now.getMonth() + 1}월`;
+  // const now = new Date();
+  // const monthLabel = `${now.getFullYear()}년 ${now.getMonth() + 1}월`;
   const net = totalIncome - totalExpense;
   const grouped = groupByDate(transactions);
 

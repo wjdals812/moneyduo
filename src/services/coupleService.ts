@@ -117,7 +117,7 @@ export async function getCoupleById(coupleId: string) {
   const ref = doc(db, COUPLES_COL, coupleId);
   const snap = await getDoc(ref);
   if (!snap.exists()) return null;
-  return { id: snap.id, ...snap.data() };
+  return { id: snap.id, ...snap.data() } as Record<string, any>;
 }
 
 export async function getMyCouple(currentUid: string) {
