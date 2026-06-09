@@ -63,7 +63,7 @@ const TransactionPage = () => {
       background: "linear-gradient(160deg, #f5f0ff 0%, #fff0f7 50%, #f0f4ff 100%)",
       maxWidth: "400px",
       margin: "0 auto",
-      paddingBottom: "100px",
+      paddingBottom: "180px",
       position: "relative",
     }}>
 
@@ -267,7 +267,7 @@ const TransactionPage = () => {
           </div>
         )}
       </div>
-
+      <div style={{ height: "140px" }} />
       <BottomNav />
     </div>
   );

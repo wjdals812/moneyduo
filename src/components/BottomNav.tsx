@@ -75,7 +75,7 @@ const BottomNav = () => {
   const location = useLocation();
 
   return (
-    <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[400px] bg-white border-t-2 border-[#c9c2f5] flex justify-around py-2 pb-4">
+    <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[400px] bg-white border-t-2 border-[#c9c2f5] flex justify-around py-2 pb-4 z-30">
       {menus.map(({ path, label, Icon }) => {
         const active = location.pathname === path;
         return (
