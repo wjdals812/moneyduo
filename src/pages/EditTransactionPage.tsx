@@ -71,7 +71,7 @@ const EditTransactionPage = () => {
   return (
     <div style={{
       minHeight: "100svh",
-      background: "#fdfcf9",
+      background: "#f5f3ff",
       maxWidth: "400px",
       margin: "0 auto",
       paddingBottom: "40px",

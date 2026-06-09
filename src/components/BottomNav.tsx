@@ -17,17 +17,31 @@ const HomeIcon = ({ active }: { active: boolean }) =>
   );
 
 // 내역 아이콘
-const TransactionsIcon = ({ active }: { active: boolean }) =>
+// const TransactionsIcon = ({ active }: { active: boolean }) =>
+//   active ? (
+//     // filled
+//     <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+//       <path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2Zm-9 13H7v-2h3v2Zm0-4H7v-2h3v2Zm0-4H7V6h3v2Zm6 8h-4v-2h4v2Zm0-4h-4v-2h4v2Zm0-4h-4V6h4v2Z" />
+//     </svg>
+//   ) : (
+//     // outline
+//     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg">
+//       <rect x="3" y="3" width="18" height="18" rx="2" />
+//       <path d="M7 8h3M7 12h3M7 16h3M14 8h3M14 12h3M14 16h3" />
+//     </svg>
+//   );
+
+// 캘린더 아이콘 추가
+const CalendarIcon = ({ active }: { active: boolean }) =>
   active ? (
-    // filled
     <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2Zm-9 13H7v-2h3v2Zm0-4H7v-2h3v2Zm0-4H7V6h3v2Zm6 8h-4v-2h4v2Zm0-4h-4v-2h4v2Zm0-4h-4V6h4v2Z" />
+      <path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 16H5V9h14v11ZM7 11h2v2H7Zm4 0h2v2h-2Zm4 0h2v2h-2Zm-8 4h2v2H7Zm4 0h2v2h-2Zm4 0h2v2h-2Z" />
     </svg>
   ) : (
-    // outline
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg">
-      <rect x="3" y="3" width="18" height="18" rx="2" />
-      <path d="M7 8h3M7 12h3M7 16h3M14 8h3M14 12h3M14 16h3" />
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <path d="M16 2v4M8 2v4M3 10h18" />
+      <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01" />
     </svg>
   );
 
@@ -65,8 +79,9 @@ const MypageIcon = ({ active }: { active: boolean }) =>
 
 const menus = [
   { path: "/home", label: "홈", Icon: HomeIcon },
-  { path: "/transactions", label: "내역", Icon: TransactionsIcon },
+  // { path: "/transactions", label: "내역", Icon: TransactionsIcon },
   { path: "/chart", label: "차트", Icon: ChartIcon },
+  { path: "/calendar", label: "캘린더", Icon: CalendarIcon },
   { path: "/mypage", label: "내 정보", Icon: MypageIcon },
 ];
 
