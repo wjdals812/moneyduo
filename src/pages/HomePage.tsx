@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
+import coupleService from "../services/coupleService";
+import { collection, query, where, orderBy, limit, getDocs, getDoc, doc } from "firebase/firestore";
 import BottomNav from "../components/BottomNav";
 import type { Transaction } from "../types/index";
 
@@ -25,11 +26,18 @@ const formatDate = (dateStr: string) => {
 const HomePage = () => {
   const navigate = useNavigate();
   const [userName, setUserName] = useState("");
+  const [showCoupleModal, setShowCoupleModal] = useState(false);
+  const [inviteCode, setInviteCode] = useState("");
+  const [inputCode, setInputCode] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+  const [coupleInfo, setCoupleInfo] = useState<any>(null);
+  const [partnerName, setPartnerName] = useState("");
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [totalExpense, setTotalExpense] = useState(0);
   const [totalIncome, setTotalIncome] = useState(0);
 
   useEffect(() => {
+    let coupleUnsub: (() => void) | null = null;
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setUserName(user.displayName || "");
@@ -51,11 +59,50 @@ const HomePage = () => {
         setTotalIncome(
           data.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0)
         );
+
+        // 실시간 커플 리스너 설정
+        try {
+          if (coupleUnsub) {
+            coupleUnsub();
+            coupleUnsub = null;
+          }
+          const myCouple = await coupleService.getMyCouple(user.uid);
+          if (myCouple) {
+            setCoupleInfo(myCouple);
+            setInviteCode(myCouple.inviteCode ?? "");
+            coupleUnsub = coupleService.listenToCouple(myCouple.id, async (data) => {
+              setCoupleInfo(data);
+              if (!data) {
+                setPartnerName("");
+                setInviteCode("");
+                return;
+              }
+              const members: string[] = data.members ?? [];
+              const partnerUid = members.find((m) => m !== user.uid);
+              if (partnerUid) {
+                const userSnap = await getDoc(doc(db, "users", partnerUid));
+                const p = userSnap.exists() ? (userSnap.data() as any) : null;
+                setPartnerName(p?.displayName || "");
+              } else {
+                setPartnerName("");
+              }
+            });
+          } else {
+            setCoupleInfo(null);
+            setPartnerName("");
+            setInviteCode("");
+          }
+        } catch (e) {
+          console.error(e);
+        }
       } else {
         navigate("/");
       }
     });
-    return () => unsubscribe();
+    return () => {
+      if (coupleUnsub) coupleUnsub();
+      unsubscribe();
+    };
   }, [navigate]);
 
   const handleLogout = async () => {
@@ -151,6 +198,49 @@ const HomePage = () => {
           <div style={{ color: "#5d4732" }}>
             <div style={{ fontSize: "18px", fontWeight: 800 }}>MoneyDuo</div>
             <div style={{ fontSize: "12px", opacity: 0.85 }}>우리 둘의 재정 현황</div>
+          </div>
+          <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
+            {partnerName ? (
+              <>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "#6B5CE7" }}>{partnerName}님과 연결됨</div>
+                <button
+                  onClick={async () => {
+                    if (!auth.currentUser) return;
+                    const ok = confirm("커플 연결을 해제하시겠어요?");
+                    if (!ok) return;
+                    try {
+                      await coupleService.leaveCouple(auth.currentUser.uid);
+                      setPartnerName("");
+                      setCoupleInfo(null);
+                      setInviteCode("");
+                      alert("연결 해제되었습니다.");
+                    } catch (e: any) {
+                      alert(e.message || String(e));
+                    }
+                  }}
+                  style={{ all: "unset", padding: "8px 10px", background: "#fff0f6", borderRadius: 10, cursor: "pointer", fontWeight: 800 }}
+                >
+                  연결 해제
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => setShowCoupleModal(true)}
+                style={{
+                  all: "unset",
+                  padding: "8px 12px",
+                  background: "#fff7e8",
+                  border: "1px solid rgba(148, 120, 90, 0.12)",
+                  borderRadius: "12px",
+                  color: "#7a5a3f",
+                  cursor: "pointer",
+                  fontSize: "12px",
+                  fontWeight: 800,
+                }}
+              >
+                커플 연결
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -343,6 +433,83 @@ const HomePage = () => {
       </button>
 
       <div style={{ height: "140px" }} />
+      {showCoupleModal && (
+        <div style={{ position: "fixed", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 40 }}>
+          <div onClick={() => setShowCoupleModal(false)} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.35)" }} />
+          <div style={{ background: "white", width: "92%", maxWidth: "420px", borderRadius: "12px", padding: "18px", zIndex: 41 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <div style={{ fontWeight: 800 }}>커플 연결</div>
+              <button onClick={() => setShowCoupleModal(false)} style={{ all: "unset", cursor: "pointer" }}>✕</button>
+            </div>
+
+            <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+              <button
+                onClick={async () => {
+                  try {
+                    setIsCreating(true);
+                    if (!auth.currentUser) throw new Error("로그인 필요");
+                    const res = await coupleService.createCouple(auth.currentUser.uid);
+                    setInviteCode(res.inviteCode);
+                  } catch (e: any) {
+                    alert(e.message || String(e));
+                  } finally {
+                    setIsCreating(false);
+                  }
+                }}
+                style={{ flex: 1, padding: "10px", borderRadius: 10, background: "#f5f0ff", border: "none", cursor: "pointer", fontWeight: 800 }}
+              >
+                {isCreating ? "생성중..." : "초대 코드 생성"}
+              </button>
+              <button
+                onClick={() => {
+                  setInviteCode("");
+                }}
+                style={{ padding: "10px", borderRadius: 10, background: "#fff0f6", border: "none", cursor: "pointer", fontWeight: 800 }}
+              >
+                초기화
+              </button>
+            </div>
+
+            {inviteCode ? (
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ fontSize: 12, color: "#7a5a3f", marginBottom: 6 }}>초대 코드</div>
+                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <div style={{ flex: 1, padding: "10px", borderRadius: 8, background: "#f7f7fb", fontWeight: 900 }}>{inviteCode}</div>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard?.writeText(inviteCode);
+                      alert("코드가 복사되었습니다.");
+                    }}
+                    style={{ padding: "8px 10px", borderRadius: 8, background: "#7f77dd", color: "white", border: "none", cursor: "pointer" }}
+                  >복사</button>
+                </div>
+              </div>
+            ) : null}
+
+            <div style={{ marginTop: 6 }}>
+              <div style={{ fontSize: 12, color: "#7a5a3f", marginBottom: 6 }}>코드로 참여</div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <input value={inputCode} onChange={(e) => setInputCode(e.target.value.toUpperCase())} placeholder="초대 코드 입력" style={{ flex: 1, padding: "10px", borderRadius: 8, border: "1px solid #eee" }} />
+                <button
+                  onClick={async () => {
+                    try {
+                      if (!auth.currentUser) throw new Error("로그인 필요");
+                      const code = inputCode.trim().toUpperCase();
+                      if (!code) return alert("코드를 입력하세요.");
+                      await coupleService.joinByCode(auth.currentUser.uid, code);
+                      alert("참여되었습니다.");
+                      setShowCoupleModal(false);
+                    } catch (e: any) {
+                      alert(e.message || String(e));
+                    }
+                  }}
+                  style={{ padding: "10px", borderRadius: 8, background: "#6B5CE7", color: "white", border: "none", cursor: "pointer", fontWeight: 800 }}
+                >참여</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <BottomNav />
     </div>
   );

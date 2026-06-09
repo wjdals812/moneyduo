@@ -1,13 +1,28 @@
 import { signInWithPopup } from "firebase/auth";
-import { auth, provider } from "../firebase";
+import { auth, provider, db } from "../firebase";
 import { useNavigate } from "react-router-dom";
+import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 
 const LoginPage = () => {
   const navigate = useNavigate();
 
   const handleGoogleLogin = async () => {
     try {
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      // 유저 문서가 없으면 생성
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+      if (!userSnap.exists()) {
+        await setDoc(userRef, {
+          uid: user.uid,
+          displayName: user.displayName || "",
+          email: user.email || "",
+          createdAt: serverTimestamp(),
+        });
+      }
+
       navigate("/home");
     } catch (error) {
       console.error("로그인 실패:", error);
