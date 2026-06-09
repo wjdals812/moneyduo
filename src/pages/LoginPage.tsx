@@ -50,7 +50,7 @@ const LoginPage = () => {
         position: "absolute", top: "-80px", right: "-60px",
         width: "280px", height: "280px",
         borderRadius: "50%",
-        background: "radial-gradient(circle, rgba(190, 155, 110, 0.18), transparent)",
+        background: "radial-gradient(circle, rgba(155, 142, 196, 0.18), transparent)",
         filter: "blur(50px)",
         pointerEvents: "none",
       }} />
@@ -58,7 +58,7 @@ const LoginPage = () => {
         position: "absolute", bottom: "80px", left: "-80px",
         width: "260px", height: "260px",
         borderRadius: "50%",
-        background: "radial-gradient(circle, rgba(210, 170, 120, 0.14), transparent)",
+        background: "radial-gradient(circle, rgba(155, 142, 196, 0.18), transparent)",
         filter: "blur(50px)",
         pointerEvents: "none",
       }} />
@@ -127,14 +127,14 @@ const LoginPage = () => {
         background: "rgba(255,255,255,0.88)",
         backdropFilter: "blur(12px)",
         borderRadius: "32px",
-        border: "1.5px solid rgba(190, 155, 110, 0.25)",
+        border: "1.5px solid rgba(184, 174, 222, 0.35)",
         padding: "44px 36px 40px",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         width: "100%",
         maxWidth: "320px",
-        boxShadow: "0 12px 40px rgba(120, 85, 48, 0.1), 0 2px 8px rgba(190, 155, 110, 0.08)",
+        boxShadow: "0 12px 40px rgba(127, 119, 221, 0.1), 0 2px 8px rgba(167, 139, 250, 0.08)",
         animation: "fadeUp 0.6s ease both",
         position: "relative",
         zIndex: 1,
@@ -163,7 +163,7 @@ const LoginPage = () => {
         <h1 style={{
           fontSize: "32px",
           fontWeight: 700,
-          color: "#6B5F3F",
+          color: "#534AB7",
           margin: "10px 0 4px",
           letterSpacing: "-0.5px",
           animation: "fadeUp 0.6s 0.2s ease both",
@@ -176,7 +176,7 @@ const LoginPage = () => {
         {/* 서브타이틀 */}
         <p style={{
           fontSize: "13px",
-          color: "#9e8a6f",
+          color: "#8882cc",
           marginBottom: "32px",
           textAlign: "center",
           lineHeight: 1.6,
@@ -185,7 +185,7 @@ const LoginPage = () => {
           animationFillMode: "forwards",
         }}>
           우리 둘이 함께하는<br />
-          <span style={{ color: "#8b7355", fontWeight: 700 }}>가계부 💕</span>
+          <span style={{ color: "#7f77dd", fontWeight: 700 }}>가계부 💕</span>
         </p>
 
         {/* 구분선 장식 */}
@@ -199,9 +199,9 @@ const LoginPage = () => {
           opacity: 0,
           animationFillMode: "forwards",
         }}>
-          <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, rgba(190, 155, 110, 0.3))" }} />
+          <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, rgba(184, 174, 222, 0.4))" }} />
           <span style={{ fontSize: 14 }}>🌷</span>
-          <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, rgba(190, 155, 110, 0.3))" }} />
+          <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, rgba(184, 174, 222, 0.4))" }} />
         </div>
 
         {/* 구글 로그인 버튼 */}
@@ -239,7 +239,7 @@ const LoginPage = () => {
         {/* 하단 문구 */}
         <p style={{
           fontSize: "11px",
-          color: "#b3927d",
+          color: "#b0a8e8",
           marginTop: "18px",
           animation: "fadeUp 0.6s 0.5s ease both",
           opacity: 0,
