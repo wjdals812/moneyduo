@@ -6,6 +6,7 @@ import ChartPage from "./pages/ChartPage";
 import AddTransactionPage from "./pages/AddTransactionPage";
 import EditTransactionPage from "./pages/EditTransactionPage";
 import CategoriesPage from "./pages/CategoriesPage";
+import MyPage from "./pages/MyPage";
 
 const App = () => {
   return (
@@ -19,6 +20,7 @@ const App = () => {
         <Route path="/add" element={<AddTransactionPage />} />
         <Route path="/edit/:id" element={<EditTransactionPage />} />
         <Route path="/categories" element={<CategoriesPage />} />
+        <Route path="/mypage" element={<MyPage />} />
       </Routes>
     </BrowserRouter>
   );
