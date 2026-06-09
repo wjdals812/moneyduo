@@ -32,8 +32,7 @@ const LoginPage = () => {
   return (
     <div style={{
       minHeight: "100svh",
-      background: "linear-gradient(180deg, #fbf3e7 0%, #f7efe3 10%, #fdf9f4 100%)",
-      backgroundImage: "repeating-linear-gradient(180deg, transparent, transparent 28px, rgba(190, 155, 110, 0.05) 29px, transparent 30px)",
+      background: "#f5f3ff",
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
@@ -115,7 +114,7 @@ const LoginPage = () => {
         }
         .login-btn:hover {
           transform: scale(1.04) !important;
-          box-shadow: 0 8px 32px rgba(184, 149, 106, 0.3) !important;
+          box-shadow: 0 8px 32px rgba(127, 119, 221, 0.3) !important;
         }
         .login-btn:active {
           transform: scale(0.97) !important;
