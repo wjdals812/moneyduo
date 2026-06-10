@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db, auth } from "../firebase";
+import coupleService from "../services/coupleService";
 
 const EditTransactionPage = () => {
   const navigate = useNavigate();
@@ -14,27 +15,30 @@ const EditTransactionPage = () => {
   const [paidBy, setPaidBy] = useState<"me" | "partner" | "together">("me");
   const [type, setType] = useState<"expense" | "income">("expense");
   const [date, setDate] = useState("");
+  const [coupleId, setCoupleId] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchData = async () => {
       const uid = auth.currentUser?.uid;
       if (!uid) return;
+
+      // 카테고리 불러오기
       const ref = doc(db, "userSettings", uid);
       const snapshot = await getDoc(ref);
       if (snapshot.exists() && snapshot.data().categories) {
         setCategories(snapshot.data().categories);
       }
-    };
-    fetchCategories();
-  }, []);
 
-  useEffect(() => {
-    const fetchData = async () => {
+      // coupleId 불러오기
+      const myCouple = await coupleService.getMyCouple(uid);
+      if (myCouple) setCoupleId(myCouple.id);
+
+      // 기존 내역 불러오기
       if (!id) return;
       const docRef = doc(db, "transactions", id);
-      const snapshot = await getDoc(docRef);
-      if (snapshot.exists()) {
-        const data = snapshot.data();
+      const txSnap = await getDoc(docRef);
+      if (txSnap.exists()) {
+        const data = txSnap.data();
         setAmount(String(data.amount));
         setDescription(data.description);
         setCategory(data.category);
@@ -60,6 +64,7 @@ const EditTransactionPage = () => {
         paidBy,
         type,
         date,
+        coupleId: coupleId ?? null, // ✅ 기존 내역에도 coupleId 업데이트
         updatedAt: new Date(),
       });
       navigate("/home");

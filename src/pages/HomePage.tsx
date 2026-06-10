@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
@@ -36,62 +36,79 @@ const HomePage = () => {
   const [totalExpense, setTotalExpense] = useState(0);
   const [totalIncome, setTotalIncome] = useState(0);
 
+  // ✅ useRef로 변경 — 외부에서도 접근 가능
+  const coupleUnsubRef = useRef<(() => void) | null>(null);
+
+  // 커플 리스너를 붙이는 헬퍼 함수
+  const attachCoupleListener = (coupleId: string, currentUid: string) => {
+    // 기존 리스너 해제
+    if (coupleUnsubRef.current) {
+      coupleUnsubRef.current();
+      coupleUnsubRef.current = null;
+    }
+
+    coupleUnsubRef.current = coupleService.listenToCouple(coupleId, async (data) => {
+      setCoupleInfo(data);
+      if (!data) {
+        setPartnerName("");
+        setInviteCode("");
+        return;
+      }
+      setInviteCode(data.inviteCode ?? "");
+      const members: string[] = data.members ?? [];
+      const partnerUid = members.find((m) => m !== currentUid);
+      if (partnerUid) {
+        const userSnap = await getDoc(doc(db, "users", partnerUid));
+        const p = userSnap.exists() ? (userSnap.data() as any) : null;
+        setPartnerName(p?.displayName || "");
+      } else {
+        setPartnerName("");
+      }
+    });
+  };
+
   useEffect(() => {
-    let coupleUnsub: (() => void) | null = null;
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setUserName(user.displayName || "");
-        const q = query(
-          collection(db, "transactions"),
-          where("createdBy", "==", user.uid),
-          orderBy("date", "desc"),
-          limit(20)
-        );
-        const snapshot = await getDocs(q);
-        const data = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Transaction[];
-        setTransactions(data);
-        setTotalExpense(
-          data.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0)
-        );
-        setTotalIncome(
-          data.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0)
-        );
-
-        // 실시간 커플 리스너 설정
         try {
-          if (coupleUnsub) {
-            coupleUnsub();
-            coupleUnsub = null;
-          }
           const myCouple = await coupleService.getMyCouple(user.uid);
+
+          let txData: Transaction[] = [];
+
           if (myCouple) {
+            // ✅ 커플 연결 상태 — coupleId로 둘 다의 내역 조회
             setCoupleInfo(myCouple);
             setInviteCode(myCouple.inviteCode ?? "");
-            coupleUnsub = coupleService.listenToCouple(myCouple.id, async (data) => {
-              setCoupleInfo(data);
-              if (!data) {
-                setPartnerName("");
-                setInviteCode("");
-                return;
-              }
-              const members: string[] = data.members ?? [];
-              const partnerUid = members.find((m) => m !== user.uid);
-              if (partnerUid) {
-                const userSnap = await getDoc(doc(db, "users", partnerUid));
-                const p = userSnap.exists() ? (userSnap.data() as any) : null;
-                setPartnerName(p?.displayName || "");
-              } else {
-                setPartnerName("");
-              }
-            });
+            attachCoupleListener(myCouple.id, user.uid);
+
+            const coupleQ = query(
+              collection(db, "transactions"),
+              where("coupleId", "==", myCouple.id),
+              orderBy("date", "desc"),
+              limit(20)
+            );
+            const coupleSnap = await getDocs(coupleQ);
+            txData = coupleSnap.docs.map((d) => ({ id: d.id, ...d.data() })) as Transaction[];
           } else {
+            // 커플 없음 — 본인 내역만 조회
             setCoupleInfo(null);
             setPartnerName("");
             setInviteCode("");
+
+            const soloQ = query(
+              collection(db, "transactions"),
+              where("createdBy", "==", user.uid),
+              orderBy("date", "desc"),
+              limit(20)
+            );
+            const soloSnap = await getDocs(soloQ);
+            txData = soloSnap.docs.map((d) => ({ id: d.id, ...d.data() })) as Transaction[];
           }
+
+          setTransactions(txData);
+          setTotalExpense(txData.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0));
+          setTotalIncome(txData.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0));
         } catch (e) {
           console.error(e);
         }
@@ -99,19 +116,13 @@ const HomePage = () => {
         navigate("/");
       }
     });
+
     return () => {
-      if (coupleUnsub) coupleUnsub();
+      if (coupleUnsubRef.current) coupleUnsubRef.current();
       unsubscribe();
     };
   }, [navigate]);
 
-  // const handleLogout = async () => {
-  //   await auth.signOut();
-  //   navigate("/");
-  // };
-
-  // const now = new Date();
-  // const monthLabel = `${now.getFullYear()}년 ${now.getMonth() + 1}월`;
   const net = totalIncome - totalExpense;
   const grouped = groupByDate(transactions);
 
@@ -181,19 +192,6 @@ const HomePage = () => {
         animation: "fadeUp 0.5s ease both",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          {/* <button onClick={() => navigate(-1)} style={{
-            all: "unset",
-            width: "36px",
-            height: "36px",
-            borderRadius: "12px",
-            background: "#fff7e8",
-            border: "1px solid rgba(148, 120, 90, 0.24)",
-            color: "#7a5a3f",
-            fontSize: "16px",
-            cursor: "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: "0 4px 10px rgba(120, 85, 48, 0.12)",
-          }}>←</button> */}
           <div>
             <div style={{ fontSize: "20px", fontWeight: 800, color: "#3C3489" }}>MoneyDuo</div>
             <div style={{ fontSize: "13px", fontWeight: 600, color: "#b0a8e8", opacity: 0.85 }}>우리 둘의 재정 현황</div>
@@ -212,6 +210,11 @@ const HomePage = () => {
                       setPartnerName("");
                       setCoupleInfo(null);
                       setInviteCode("");
+                      // 리스너도 해제
+                      if (coupleUnsubRef.current) {
+                        coupleUnsubRef.current();
+                        coupleUnsubRef.current = null;
+                      }
                       alert("연결 해제되었습니다.");
                     } catch (e: any) {
                       alert(e.message || String(e));
@@ -244,7 +247,7 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* 요약 카드 — 헤더에 살짝 겹치게 */}
+      {/* 요약 카드 */}
       <div style={{
         margin: "-18px 16px 0",
         background: "rgba(255,255,255,0.80)",
@@ -289,9 +292,7 @@ const HomePage = () => {
           display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px",
           animation: "fadeUp 0.5s 0.2s ease both", opacity: 0, animationFillMode: "forwards",
         }}>
-          <span style={{
-            fontSize: "16px", fontWeight: 700, color: "#7A6FA8",
-          }}>최근 내역</span>
+          <span style={{ fontSize: "16px", fontWeight: 700, color: "#7A6FA8" }}>최근 내역</span>
           <div style={{ flex: 1, height: "1.5px", background: "linear-gradient(to right, #e8e4f5, transparent)" }} />
           <span style={{ fontSize: "13px" }}>📋</span>
         </div>
@@ -316,7 +317,6 @@ const HomePage = () => {
                   animation: `fadeUp 0.5s ${0.2 + gi * 0.07}s ease both`,
                   opacity: 0, animationFillMode: "forwards",
                 }}>
-                  {/* 날짜 헤더 */}
                   <div style={{
                     display: "flex", alignItems: "center", gap: "8px",
                     marginBottom: "10px",
@@ -340,7 +340,6 @@ const HomePage = () => {
                     </span>
                   </div>
 
-                  {/* 내역 카드들 */}
                   <div style={{
                     display: "flex", flexDirection: "column", gap: "8px",
                     paddingLeft: "10px",
@@ -387,7 +386,7 @@ const HomePage = () => {
                           fontSize: "13px", fontWeight: 900,
                           color: tx.type === "expense" ? "#d4537e" : "#3B8C3B",
                           whiteSpace: "nowrap",
-                          }}>
+                        }}>
                           {tx.type === "expense" ? "-" : "+"}{tx.amount.toLocaleString()}원
                         </div>
                         <button
@@ -432,6 +431,7 @@ const HomePage = () => {
       </button>
 
       <div style={{ height: "140px" }} />
+
       {showCoupleModal && (
         <div style={{ position: "fixed", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 40 }}>
           <div onClick={() => setShowCoupleModal(false)} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.35)" }} />
@@ -449,6 +449,9 @@ const HomePage = () => {
                     if (!auth.currentUser) throw new Error("로그인 필요");
                     const res = await coupleService.createCouple(auth.currentUser.uid);
                     setInviteCode(res.inviteCode);
+
+                    // ✅ 코드 생성 직후 리스너 붙이기
+                    attachCoupleListener(res.coupleId, auth.currentUser.uid);
                   } catch (e: any) {
                     alert(e.message || String(e));
                   } finally {
@@ -460,9 +463,7 @@ const HomePage = () => {
                 {isCreating ? "생성중..." : "초대 코드 생성"}
               </button>
               <button
-                onClick={() => {
-                  setInviteCode("");
-                }}
+                onClick={() => setInviteCode("")}
                 style={{ padding: "10px", borderRadius: 10, background: "#fff0f6", border: "none", cursor: "pointer", fontWeight: 800 }}
               >
                 초기화
@@ -488,14 +489,23 @@ const HomePage = () => {
             <div style={{ marginTop: 6 }}>
               <div style={{ fontSize: 12, color: "#7a5a3f", marginBottom: 6 }}>코드로 참여</div>
               <div style={{ display: "flex", gap: 8 }}>
-                <input value={inputCode} onChange={(e) => setInputCode(e.target.value.toUpperCase())} placeholder="초대 코드 입력" style={{ flex: 1, padding: "10px", borderRadius: 8, border: "1px solid #eee" }} />
+                <input
+                  value={inputCode}
+                  onChange={(e) => setInputCode(e.target.value.toUpperCase())}
+                  placeholder="초대 코드 입력"
+                  style={{ flex: 1, padding: "10px", borderRadius: 8, border: "1px solid #eee" }}
+                />
                 <button
                   onClick={async () => {
                     try {
                       if (!auth.currentUser) throw new Error("로그인 필요");
                       const code = inputCode.trim().toUpperCase();
                       if (!code) return alert("코드를 입력하세요.");
-                      await coupleService.joinByCode(auth.currentUser.uid, code);
+                      const result = await coupleService.joinByCode(auth.currentUser.uid, code);
+
+                      // ✅ 참여 후 리스너 붙이기
+                      attachCoupleListener(result.coupleId, auth.currentUser!.uid);
+
                       alert("참여되었습니다.");
                       setShowCoupleModal(false);
                     } catch (e: any) {

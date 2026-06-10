@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { collection, addDoc, doc, getDoc } from "firebase/firestore";
 import { db, auth } from "../firebase";
+import coupleService from "../services/coupleService";
 
 const AddTransactionPage = () => {
   const navigate = useNavigate();
@@ -14,18 +15,25 @@ const AddTransactionPage = () => {
 
   const defaultCategories = ["🍜 식비", "☕ 카페", "🎬 문화", "🚌 교통", "🛍️ 쇼핑", "💊 의료", "🏠 생활", "💑 데이트", "기타"];
   const [categories, setCategories] = useState<string[]>(defaultCategories);
+  const [coupleId, setCoupleId] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchData = async () => {
       const uid = auth.currentUser?.uid;
       if (!uid) return;
+
+      // 카테고리 불러오기
       const ref = doc(db, "userSettings", uid);
       const snapshot = await getDoc(ref);
       if (snapshot.exists() && snapshot.data().categories) {
         setCategories(snapshot.data().categories);
       }
+
+      // coupleId 불러오기
+      const myCouple = await coupleService.getMyCouple(uid);
+      if (myCouple) setCoupleId(myCouple.id);
     };
-    fetchCategories();
+    fetchData();
   }, []);
 
   const handleSubmit = async () => {
@@ -42,6 +50,7 @@ const AddTransactionPage = () => {
         type,
         date,
         createdBy: auth.currentUser?.uid,
+        coupleId: coupleId ?? null, // ✅ coupleId 저장
         createdAt: new Date(),
       });
       navigate("/home");
@@ -78,7 +87,7 @@ const AddTransactionPage = () => {
           cursor: "pointer",
           display: "flex", alignItems: "center", justifyContent: "center",
         }}>←</button>
-        <div style={{ fontSize: "18px", fontWeight: 800, color: "#5a4e7a", }}>내역 추가 💜</div>
+        <div style={{ fontSize: "18px", fontWeight: 800, color: "#5a4e7a" }}>내역 추가 💜</div>
       </div>
 
       <div style={{ padding: "20px 16px", display: "flex", flexDirection: "column", gap: "16px" }}>
