@@ -47,6 +47,8 @@ const HomePage = () => {
   const [totalIncome, setTotalIncome] = useState(0);           // 총 수입 합계
   const [loading, setLoading] = useState(true);                // Firebase 인증 응답 대기 중 여부
                                                                // (true일 때 로딩 화면 표시 → flash 방지)
+  const [partnerEmoji, setPartnerEmoji] = useState("🐻");
+  const [myEmoji, setMyEmoji] = useState("🐰");
 
   // ── Refs ───────────────────────────────────
   // 커플 문서 실시간 리스너의 해제 함수를 저장
@@ -63,6 +65,8 @@ const HomePage = () => {
     if (coupleUnsubRef.current) {
       coupleUnsubRef.current();
       coupleUnsubRef.current = null;
+      setPartnerName(p?.displayName || "");
+      setPartnerEmoji(p?.emoji || "🐻");
     }
 
     // 새 리스너 등록: 커플 문서가 변경될 때마다 콜백 실행
@@ -105,6 +109,12 @@ const HomePage = () => {
       if (user) {
         // ── 로그인된 상태 ──
         setUserName(user.displayName || "");
+
+        // 추가: 내 이모지 읽기
+        const userSnap = await getDoc(doc(db, "users", user.uid));
+        if (userSnap.exists()) {
+          setMyEmoji(userSnap.data().emoji || "🐰");
+        }
 
         try {
           // 내 커플 문서 조회 (couples 컬렉션에서 members 배열에 내 uid가 있는 문서)
@@ -486,7 +496,7 @@ const HomePage = () => {
                           </div>
                           {/* paidBy: "me" | "partner" | "together" */}
                           <div style={{ fontSize: "11px", fontWeight: 800, color: "#6b65a8", marginTop: "2px" }}>
-                            {tx.paidBy === "me" ? "🐰 나" : tx.paidBy === "partner" ? "🐻 짝꿍" : "💕 같이"}
+                            {tx.paidBy === "me" ? `${myEmoji} 나` : tx.paidBy === "partner" ? `${partnerEmoji} 짝꿍` : "💕 같이"}
                           </div>
                         </div>
 
