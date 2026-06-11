@@ -201,14 +201,15 @@ const EditTransactionPage = () => {
         </div>
 
         <button onClick={handleUpdate} style={{
-          width: "100%", padding: "16px",
-          borderRadius: "20px",
-          background: "linear-gradient(135deg, #7f77dd, #a78bfa)",
-          color: "white", fontSize: "15px", fontWeight: 900,
-          border: "none", cursor: "pointer",
-          boxShadow: "0 4px 20px #7f77dd60",
-          marginTop: "4px",
-        }}>수정하기 💜</button>
+            width: "100%", padding: "16px",
+            borderRadius: "20px",
+            background: "linear-gradient(135deg, #7f77dd, #a78bfa)",
+            color: "white", fontSize: "15px", fontWeight: 900,
+            border: "none", cursor: "pointer",
+            boxShadow: "0 4px 20px #7f77dd60",
+            marginTop: "4px",
+          }}>수정하기 💜
+        </button>
       </div>
     </div>
   );
