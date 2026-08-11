@@ -5,7 +5,14 @@ import { onAuthStateChanged } from "firebase/auth";
 import coupleService from "../services/coupleService";
 import { collection, query, where, orderBy, limit, getDocs, getDoc, doc } from "firebase/firestore";
 import BottomNav from "../components/BottomNav";
+import MonthNavigator from "../components/MonthNavigator";
 import type { Transaction } from "../types/index";
+
+// ─────────────────────────────────────────────
+// 📅 월(month) 포맷팅 헬퍼 함수
+// 예: new Date(2024, 5) → "2024-06"
+// ─────────────────────────────────────────────
+const formatMonthKey = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 
 // ─────────────────────────────────────────────
 // 📅 날짜별로 거래 내역을 묶어주는 함수
@@ -49,11 +56,75 @@ const HomePage = () => {
                                                                // (true일 때 로딩 화면 표시 → flash 방지)
   const [partnerEmoji, setPartnerEmoji] = useState("🐻");
   const [myEmoji, setMyEmoji] = useState("🐰");
+  const [month, setMonth] = useState<Date>(new Date());
 
   // ── Refs ───────────────────────────────────
   // 커플 문서 실시간 리스너의 해제 함수를 저장
   // useRef를 쓰는 이유: 리렌더링 없이 최신 값 유지 + cleanup 함수 외부 접근 가능
   const coupleUnsubRef = useRef<(() => void) | null>(null);
+
+  // ─────────────────────────────────────────────
+  // 💾 거래 내역을 조회하고 월별로 필터링하는 함수
+  // - 커플 내역 + 개인 내역 병렬 조회
+  // - 중복 제거 후 월 필터 적용
+  // ─────────────────────────────────────────────
+  const loadTransactions = async (userId: string, monthKey: string) => {
+    try {
+      const myCouple = await coupleService.getMyCouple(userId);
+
+      let txData: Transaction[] = [];
+
+      if (myCouple && myCouple.members.length >= 2) {
+        setCoupleInfo(myCouple);
+        setInviteCode(myCouple.inviteCode ?? "");
+        attachCoupleListener(myCouple.id, userId);
+
+        const [coupleSnap, soloSnap] = await Promise.all([
+          getDocs(query(
+            collection(db, "transactions"),
+            where("coupleId", "==", myCouple.id),
+            orderBy("date", "desc"), limit(300)
+          )),
+          getDocs(query(
+            collection(db, "transactions"),
+            where("createdBy", "==", userId),
+            orderBy("date", "desc"), limit(300)
+          )),
+        ]);
+
+        const allDocs = [...coupleSnap.docs, ...soloSnap.docs];
+        const seen = new Set();
+        txData = allDocs
+          .filter(d => {
+            if (seen.has(d.id)) return false;
+            seen.add(d.id);
+            return true;
+          })
+          .map(d => ({ id: d.id, ...d.data() })) as Transaction[];
+
+        txData.sort((a, b) => b.date.localeCompare(a.date));
+
+      } else {
+        const soloQ = query(
+          collection(db, "transactions"),
+          where("createdBy", "==", userId),
+          orderBy("date", "desc"),
+          limit(300)
+        );
+        const soloSnap = await getDocs(soloQ);
+        txData = soloSnap.docs.map((d) => ({ id: d.id, ...d.data() })) as Transaction[];
+      }
+
+      // 선택한 달의 내역만 필터링
+      txData = txData.filter((t) => t.date.startsWith(monthKey));
+
+      setTransactions(txData);
+      setTotalExpense(txData.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0));
+      setTotalIncome(txData.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0));
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   // ─────────────────────────────────────────────
   // 🔗 커플 문서에 실시간 리스너를 붙이는 헬퍼 함수
@@ -121,72 +192,7 @@ const HomePage = () => {
           console.error(e);
         }
 
-        try {
-          // 내 커플 문서 조회 (couples 컬렉션에서 members 배열에 내 uid가 있는 문서)
-          const myCouple = await coupleService.getMyCouple(user.uid);
-
-          let txData: Transaction[] = [];
-
-          if (myCouple && myCouple.members.length >= 2) {
-            // ── 커플 연결 완료 (members가 2명 이상) ──
-            // 초대 코드만 생성한 상태(members 1명)는 여기 해당 안 됨
-            setCoupleInfo(myCouple);
-            setInviteCode(myCouple.inviteCode ?? "");
-            attachCoupleListener(myCouple.id, user.uid);
-
-            // 두 가지 쿼리를 동시에 실행 (Promise.all로 병렬 처리)
-            // 1) coupleId로 저장된 내역 (커플 연결 이후 작성분)
-            // 2) createdBy로 저장된 내역 (커플 연결 전 혼자 작성한 내역 포함)
-            const [coupleSnap, soloSnap] = await Promise.all([
-              getDocs(query(
-                collection(db, "transactions"),
-                where("coupleId", "==", myCouple.id),
-                orderBy("date", "desc"), limit(20)
-              )),
-              getDocs(query(
-                collection(db, "transactions"),
-                where("createdBy", "==", user.uid),
-                orderBy("date", "desc"), limit(20)
-              )),
-            ]);
-
-            // 두 결과를 합치고 중복 제거 (같은 문서가 양쪽에 있을 수 있음)
-            const allDocs = [...coupleSnap.docs, ...soloSnap.docs];
-            const seen = new Set();
-            txData = allDocs
-              .filter(d => {
-                if (seen.has(d.id)) return false;
-                seen.add(d.id);
-                return true;
-              })
-              .map(d => ({ id: d.id, ...d.data() })) as Transaction[];
-
-            // 날짜 내림차순 정렬 (최신순)
-            txData.sort((a, b) => b.date.localeCompare(a.date));
-
-          } else {
-            // ── 혼자 사용 중이거나 초대 코드만 생성한 상태 ──
-            // members가 1명이면 커플 연결 전이므로 본인 내역만 조회
-            const soloQ = query(
-              collection(db, "transactions"),
-              where("createdBy", "==", user.uid),
-              orderBy("date", "desc"),
-              limit(20)
-            );
-            const soloSnap = await getDocs(soloQ);
-            txData = soloSnap.docs.map((d) => ({ id: d.id, ...d.data() })) as Transaction[];
-          }
-
-          // 조회한 내역으로 상태 업데이트
-          setTransactions(txData);
-          // 지출 합계: type === "expense"인 항목의 amount 합산
-          setTotalExpense(txData.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0));
-          // 수입 합계: type === "income"인 항목의 amount 합산
-          setTotalIncome(txData.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0));
-
-        } catch (e) {
-          console.error(e);
-        }
+        await loadTransactions(user.uid, formatMonthKey(month));
 
       } else {
         // ── 비로그인 상태 → 로그인 페이지로 이동 ──
@@ -204,7 +210,7 @@ const HomePage = () => {
       if (coupleUnsubRef.current) coupleUnsubRef.current();
       unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, month]);
 
   // ─────────────────────────────────────────────
   // ⏳ Firebase 인증 응답 대기 중 로딩 화면
@@ -402,12 +408,10 @@ const HomePage = () => {
       ─────────────────────────────────────── */}
       <div style={{ padding: "20px 16px 0", position: "relative", zIndex: 1 }}>
         <div style={{
-          display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px",
+          marginBottom: "16px",
           animation: "fadeUp 0.5s 0.2s ease both", opacity: 0, animationFillMode: "forwards",
         }}>
-          <span style={{ fontSize: "16px", fontWeight: 700, color: "#7A6FA8" }}>최근 내역</span>
-          <div style={{ flex: 1, height: "1.5px", background: "linear-gradient(to right, #e8e4f5, transparent)" }} />
-          <span style={{ fontSize: "13px" }}>📋</span>
+          <MonthNavigator month={month} onChange={setMonth} />
         </div>
 
         {grouped.length === 0 ? (
@@ -417,7 +421,7 @@ const HomePage = () => {
             animation: "fadeUp 0.5s 0.3s ease both", opacity: 0, animationFillMode: "forwards",
           }}>
             <div style={{ fontSize: 40, marginBottom: 10, animation: "float0 2.5s ease-in-out infinite" }}>🐾</div>
-            <div style={{ fontSize: "13px", color: "#9e99cc", fontWeight: 700 }}>아직 내역이 없어요</div>
+            <div style={{ fontSize: "13px", color: "#9e99cc", fontWeight: 700 }}>이 달은 아직 내역이 없어요</div>
             <div style={{ fontSize: "11px", color: "#cfc8f0", marginTop: 4 }}>첫 번째 내역을 추가해보세요 💕</div>
           </div>
         ) : (
