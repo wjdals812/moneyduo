@@ -64,7 +64,9 @@ service cloud.firestore {
     // couples: 읽기는 멤버만 가능. 생성은 본인만 멤버로 한 채로 허용.
     // 클라이언트에서 스스로 초대 코드로 참여하거나 탈퇴할 수 있도록 제한적으로 허용.
     match /couples/{coupleId} {
-      allow read: if isSignedIn() && request.auth.uid in resource.data.members;
+      // resource가 null(문서가 존재하지 않음)일 때 resource.data 참조 시 규칙 평가 자체가 오류로
+      // 처리되어 permission-denied가 발생하므로, 없는 문서를 읽을 때도 안전하게 통과하도록 먼저 체크
+      allow read: if isSignedIn() && (resource == null || request.auth.uid in resource.data.members);
 
       allow create: if isSignedIn()
         && request.resource.data.members is list

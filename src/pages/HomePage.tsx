@@ -366,46 +366,18 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* ── 요약 카드 ───────────────────────────
-          수입 / 지출 / 순액을 3등분 그리드로 표시
+      {/* ── 월 이동 ─────────────────────────────
           헤더 아래로 살짝 올라오는 overlap 효과 (margin: -18px)
       ─────────────────────────────────────── */}
       <div style={{
         margin: "-18px 16px 0",
-        background: "rgba(255,255,255,0.80)",
-        backdropFilter: "blur(16px)",
-        borderRadius: "20px",
-        border: "2px solid rgba(184, 174, 222, 0.35)",
-        boxShadow: "0 4px 24px #B8AEDE22",
-        overflow: "hidden",
         position: "relative",
         zIndex: 2,
         animation: "fadeUp 0.5s 0.1s ease both",
         opacity: 0,
         animationFillMode: "forwards",
       }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
-          {[
-            { label: "수입", value: `+${totalIncome.toLocaleString()}`, color: "#3B8C3B", bg: "#f0fdf4" },
-            { label: "지출", value: `-${totalExpense.toLocaleString()}`, color: "#d4537e", bg: "#fff0f6" },
-            { label: "순액", value: `${net >= 0 ? "+" : ""}${net.toLocaleString()}`, color: net >= 0 ? "#7A6FA8" : "#d4537e", bg: net >= 0 ? "#f2f0fa" : "#fff0f6" },
-          ].map((item, i) => (
-            <div key={i} style={{
-              display: "flex", flexDirection: "column", alignItems: "center",
-              padding: "14px 4px",
-              borderRight: i < 2 ? "1.5px solid #e8e4f5" : "none",
-              background: item.bg,
-            }}>
-              <span style={{ fontSize: "10px", color: "#6b65a8", fontWeight: 800, marginBottom: "4px" }}>
-                {item.label}
-              </span>
-              <span style={{ fontSize: "13px", fontWeight: 900, color: item.color, letterSpacing: "-0.3px" }}>
-                {item.value}
-              </span>
-              <span style={{ fontSize: "10px", fontWeight: 800, color: "#6b65a8", marginTop: "1px" }}>원</span>
-            </div>
-          ))}
-        </div>
+        <MonthNavigator month={month} onChange={setMonth} />
       </div>
 
       {/* ── 타임라인 ────────────────────────────
@@ -413,11 +385,43 @@ const HomePage = () => {
           내역이 없으면 빈 상태 안내 표시
       ─────────────────────────────────────── */}
       <div style={{ padding: "20px 16px 0", position: "relative", zIndex: 1 }}>
+        {/* ── 요약 카드 ───────────────────────────
+            수입 / 지출 / 순액을 3등분 그리드로 표시
+        ─────────────────────────────────────── */}
         <div style={{
           marginBottom: "16px",
-          animation: "fadeUp 0.5s 0.2s ease both", opacity: 0, animationFillMode: "forwards",
+          background: "rgba(255,255,255,0.80)",
+          backdropFilter: "blur(16px)",
+          borderRadius: "20px",
+          border: "2px solid rgba(184, 174, 222, 0.35)",
+          boxShadow: "0 4px 24px #B8AEDE22",
+          overflow: "hidden",
+          animation: "fadeUp 0.5s 0.2s ease both",
+          opacity: 0,
+          animationFillMode: "forwards",
         }}>
-          <MonthNavigator month={month} onChange={setMonth} />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
+            {[
+              { label: "수입", value: `+${totalIncome.toLocaleString()}`, color: "#3B8C3B", bg: "#f0fdf4" },
+              { label: "지출", value: `-${totalExpense.toLocaleString()}`, color: "#d4537e", bg: "#fff0f6" },
+              { label: "순액", value: `${net >= 0 ? "+" : ""}${net.toLocaleString()}`, color: net >= 0 ? "#7A6FA8" : "#d4537e", bg: net >= 0 ? "#f2f0fa" : "#fff0f6" },
+            ].map((item, i) => (
+              <div key={i} style={{
+                display: "flex", flexDirection: "column", alignItems: "center",
+                padding: "8px 4px",
+                borderRight: i < 2 ? "1.5px solid #e8e4f5" : "none",
+                background: item.bg,
+              }}>
+                <span style={{ fontSize: "10px", color: "#6b65a8", fontWeight: 800, marginBottom: "2px" }}>
+                  {item.label}
+                </span>
+                <span style={{ fontSize: "13px", fontWeight: 900, color: item.color, letterSpacing: "-0.3px" }}>
+                  {item.value}
+                </span>
+                <span style={{ fontSize: "10px", fontWeight: 800, color: "#6b65a8", marginTop: "1px" }}>원</span>
+              </div>
+            ))}
+          </div>
         </div>
 
         {grouped.length === 0 ? (
