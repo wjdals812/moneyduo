@@ -2,7 +2,7 @@
 description: 수정된 파일을 커밋하고 원격 브랜치로 push
 ---
 
-<!-- /commit-push: 사용자가 수정한 파일들을 확인해서 git commit 후 push까지 한 번에 처리하는 명령어 -->
+<!-- /deploy-moneyduo: 사용자가 수정한 파일들을 확인해서 git commit 후 push까지 한 번에 처리하는 명령어 -->
 현재 브랜치의 변경사항을 커밋하고 push한다.
 
 1. `git status`와 `git diff`로 변경된 파일을 확인한다.
