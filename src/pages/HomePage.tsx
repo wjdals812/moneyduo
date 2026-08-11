@@ -65,8 +65,6 @@ const HomePage = () => {
     if (coupleUnsubRef.current) {
       coupleUnsubRef.current();
       coupleUnsubRef.current = null;
-      setPartnerName(p?.displayName || "");
-      setPartnerEmoji(p?.emoji || "🐻");
     }
 
     // 새 리스너 등록: 커플 문서가 변경될 때마다 콜백 실행
@@ -76,6 +74,7 @@ const HomePage = () => {
       // 커플 문서가 삭제됐거나 null이면 파트너 정보 초기화
       if (!data) {
         setPartnerName("");
+        setPartnerEmoji("🐻");
         setInviteCode("");
         return;
       }
@@ -87,13 +86,15 @@ const HomePage = () => {
       const partnerUid = members.find((m) => m !== currentUid);
 
       if (partnerUid) {
-        // 파트너 uid로 Firestore users 컬렉션에서 이름 조회
+        // 파트너 uid로 Firestore users 컬렉션에서 이름/이모지 조회
         const userSnap = await getDoc(doc(db, "users", partnerUid));
         const p = userSnap.exists() ? (userSnap.data() as any) : null;
         setPartnerName(p?.displayName || "");
+        setPartnerEmoji(p?.emoji || "🐻");
       } else {
         // 아직 파트너가 참여하지 않은 상태
         setPartnerName("");
+        setPartnerEmoji("🐻");
       }
     });
   };
@@ -110,10 +111,14 @@ const HomePage = () => {
         // ── 로그인된 상태 ──
         setUserName(user.displayName || "");
 
-        // 추가: 내 이모지 읽기
-        const userSnap = await getDoc(doc(db, "users", user.uid));
-        if (userSnap.exists()) {
-          setMyEmoji(userSnap.data().emoji || "🐰");
+        try {
+          // 추가: 내 이모지 읽기 (실패해도 아래 내역 조회는 계속 진행)
+          const userSnap = await getDoc(doc(db, "users", user.uid));
+          if (userSnap.exists()) {
+            setMyEmoji(userSnap.data().emoji || "🐰");
+          }
+        } catch (e) {
+          console.error(e);
         }
 
         try {
@@ -188,7 +193,7 @@ const HomePage = () => {
         navigate("/");
       }
 
-      // Firebase 응답이 완료됐으므로 로딩 종료
+      // Firebase 응답이 완료됐으므로 로딩 종료 (에러가 나도 항상 실행되어야 함)
       setLoading(false);
     });
 

@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import BottomNav from "../components/BottomNav";
+import coupleService from "../services/coupleService";
 import type { Transaction } from "../types/index";
 
 interface CategoryStats {
@@ -56,15 +57,24 @@ const ChartPage = () => {
   const loadChartData = async (userId: string, selectedMonth: string) => {
     setLoading(true);
     try {
-      const q = query(
-        collection(db, "transactions"),
-        where("createdBy", "==", userId)
-      );
-      const snapshot = await getDocs(q);
-      const transactions = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Transaction[];
+      // 내가 작성한 내역 + (커플 연결 중이면) 파트너가 작성한 내역까지 조회
+      const myCouple = await coupleService.getMyCouple(userId);
+      const snapshots = await Promise.all([
+        getDocs(query(collection(db, "transactions"), where("createdBy", "==", userId), orderBy("date", "desc"), limit(300))),
+        ...(myCouple
+          ? [getDocs(query(collection(db, "transactions"), where("coupleId", "==", myCouple.id), orderBy("date", "desc"), limit(300)))]
+          : []),
+      ]);
+
+      const seen = new Set<string>();
+      const transactions: Transaction[] = [];
+      for (const snap of snapshots) {
+        for (const d of snap.docs) {
+          if (seen.has(d.id)) continue;
+          seen.add(d.id);
+          transactions.push({ id: d.id, ...d.data() } as Transaction);
+        }
+      }
 
       // 선택된 월의 거래만 필터링
       const monthTransactions = transactions.filter((t) =>

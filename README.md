@@ -1,5 +1,13 @@
 # React + TypeScript + Vite
 
+## 배포 시 주의사항: Firestore 규칙
+
+`git push`(코드 배포)와 `firebase deploy --only firestore:rules`(Firestore 보안 규칙 배포)는 **완전히 별개의 배포 경로**입니다.
+
+- [firestore.rules](firestore.rules) 파일을 수정했다면, 그 즉시 `npm run deploy:rules`로 배포해야 실제 서버에 반영됩니다. 커밋/푸시만 해서는 반영되지 않습니다.
+- 이미 배포된 규칙은 시간이 지나도 만료되지 않습니다. (Firebase가 새 프로젝트에 기본으로 깔아주는 "테스트 모드" 규칙만 30일 후 자동 만료됩니다.)
+- 즉, "오랜만에 실행했더니 데이터가 안 보인다"는 시간이 지나서가 아니라, `firestore.rules`를 고치고 배포를 깜빡했을 때만 생기는 문제입니다.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:
