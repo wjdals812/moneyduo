@@ -62,6 +62,8 @@ const HomePage = () => {
   // 커플 문서 실시간 리스너의 해제 함수를 저장
   // useRef를 쓰는 이유: 리렌더링 없이 최신 값 유지 + cleanup 함수 외부 접근 가능
   const coupleUnsubRef = useRef<(() => void) | null>(null);
+  // 가장 최근에 요청된 monthKey를 추적 (오래된 fetch가 늦게 도착해서 최신 월을 덮어쓰는 것 방지)
+  const latestMonthKeyRef = useRef("");
 
   // ─────────────────────────────────────────────
   // 💾 거래 내역을 조회하고 월별로 필터링하는 함수
@@ -69,6 +71,7 @@ const HomePage = () => {
   // - 중복 제거 후 월 필터 적용
   // ─────────────────────────────────────────────
   const loadTransactions = async (userId: string, monthKey: string) => {
+    latestMonthKeyRef.current = monthKey;
     try {
       const myCouple = await coupleService.getMyCouple(userId);
 
@@ -117,6 +120,9 @@ const HomePage = () => {
 
       // 선택한 달의 내역만 필터링
       txData = txData.filter((t) => t.date.startsWith(monthKey));
+
+      // 이 fetch를 시작한 뒤 더 최신 월 요청이 들어왔다면 결과를 버림 (stale 데이터 방지)
+      if (latestMonthKeyRef.current !== monthKey) return;
 
       setTransactions(txData);
       setTotalExpense(txData.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0));
