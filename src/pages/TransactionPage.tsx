@@ -74,7 +74,7 @@ const TransactionPage = () => {
         borderBottom: `1px solid ${theme.border}`,
       }}>
         <div style={{ fontSize: "18px", fontWeight: 700, color: theme.text }}>내역</div>
-        <div style={{ fontSize: "12px", fontWeight: 500, color: theme.textMuted }}>우리 둘의 소비 기록</div>
+        <div style={{ fontSize: "12px", fontWeight: 500, color: theme.textMuted }}>소비 기록</div>
       </div>
 
       <div style={{ padding: "16px" }}>

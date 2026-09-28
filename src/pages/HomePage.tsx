@@ -250,7 +250,7 @@ const HomePage = () => {
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <div>
             <div style={{ fontSize: "18px", fontWeight: 700, color: theme.text }}>MoneyDuo</div>
-            <div style={{ fontSize: "12px", fontWeight: 500, color: theme.textMuted }}>우리 둘의 재정 현황</div>
+            <div style={{ fontSize: "12px", fontWeight: 500, color: theme.textMuted }}>재정 현황</div>
           </div>
           <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
             {partnerName ? (

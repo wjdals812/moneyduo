@@ -122,7 +122,9 @@ const SchedulePage = () => {
       paddingBottom: "120px",
     }}>
       <style>{`
-        .day-cell:hover { background: ${theme.surfaceMuted} !important; }
+        @media (hover: hover) {
+          .day-cell:hover { background: ${theme.surfaceMuted} !important; }
+        }
       `}</style>
 
       {/* 헤더 */}
@@ -132,7 +134,7 @@ const SchedulePage = () => {
         borderBottom: `1px solid ${theme.border}`,
       }}>
         <div style={{ fontSize: "18px", fontWeight: 700, color: theme.text }}>일정 & 기념일</div>
-        <div style={{ fontSize: "12px", fontWeight: 500, color: theme.textMuted, marginTop: 2 }}>우리 둘의 소중한 날들</div>
+        <div style={{ fontSize: "12px", fontWeight: 500, color: theme.textMuted, marginTop: 2 }}>소중한 날들을 기록해 보세요.</div>
 
         {/* 월 네비게이션 */}
         <div style={{

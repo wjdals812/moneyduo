@@ -222,7 +222,7 @@ const ChartPage = () => {
             <>
               <div style={{ width: "100%", overflow: "hidden" }}>
                 <ResponsiveContainer width="100%" height={240}>
-                  <PieChart>
+                  <PieChart accessibilityLayer={false}>
                     <Pie
                       data={expenseStats}
                       cx="50%"
@@ -233,6 +233,7 @@ const ChartPage = () => {
                       fill="#8884d8"
                       dataKey="amount"
                       nameKey="category"
+                      rootTabIndex={-1}
                     >
                       {expenseStats.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -268,7 +269,7 @@ const ChartPage = () => {
             <>
               <div style={{ width: "100%", overflow: "hidden" }}>
                 <ResponsiveContainer width="100%" height={240}>
-                  <PieChart>
+                  <PieChart accessibilityLayer={false}>
                     <Pie
                       data={incomeStats}
                       cx="50%"
@@ -279,6 +280,7 @@ const ChartPage = () => {
                       fill="#8884d8"
                       dataKey="amount"
                       nameKey="category"
+                      rootTabIndex={-1}
                     >
                       {incomeStats.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
