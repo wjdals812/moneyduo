@@ -1,5 +1,9 @@
 # React + TypeScript + Vite
 
+## 배포 링크
+
+- https://moneyduo.vercel.app (Vercel, `main` 브랜치 push 시 자동 배포)
+
 ## 배포 시 주의사항: Firestore 규칙
 
 `git push`(코드 배포)와 `firebase deploy --only firestore:rules`(Firestore 보안 규칙 배포)는 **완전히 별개의 배포 경로**입니다.
