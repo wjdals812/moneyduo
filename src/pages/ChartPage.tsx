@@ -232,6 +232,7 @@ const ChartPage = () => {
                       outerRadius={70}
                       fill="#8884d8"
                       dataKey="amount"
+                      nameKey="category"
                     >
                       {expenseStats.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -277,6 +278,7 @@ const ChartPage = () => {
                       outerRadius={70}
                       fill="#8884d8"
                       dataKey="amount"
+                      nameKey="category"
                     >
                       {incomeStats.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

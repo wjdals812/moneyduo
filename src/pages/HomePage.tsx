@@ -7,6 +7,7 @@ import { collection, query, where, orderBy, limit, getDocs, getDoc, doc } from "
 import BottomNav from "../components/BottomNav";
 import MonthNavigator from "../components/MonthNavigator";
 import type { Transaction } from "../types/index";
+import { paidByLabel } from "../types/index";
 import { theme } from "../theme";
 
 // ─────────────────────────────────────────────
@@ -418,9 +419,8 @@ const HomePage = () => {
                           }}>
                             {tx.description}
                           </div>
-                          {/* paidBy: "me" | "partner" | "together" */}
                           <div style={{ fontSize: "11px", fontWeight: 500, color: theme.textMuted, marginTop: "2px" }}>
-                            {tx.paidBy === "me" ? "나" : tx.paidBy === "partner" ? "짝꿍" : "같이"}
+                            {paidByLabel(tx, auth.currentUser?.uid)}
                           </div>
                         </div>
 

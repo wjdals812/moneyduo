@@ -63,6 +63,11 @@ service cloud.firestore {
       allow update, delete: if isSignedIn() && request.auth.uid == resource.data.createdBy;
     }
 
+    // userSettings: 카테고리 등 본인 설정. 본인만 읽고 쓸 수 있음
+    match /userSettings/{userId} {
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+    }
+
     // schedules: 생성/조회/수정/삭제 모두 작성자 본인만 가능 (SchedulePage가 createdBy로 조회)
     match /schedules/{scheduleId} {
       allow create: if isSignedIn() && request.auth.uid == request.resource.data.createdBy;
