@@ -63,6 +63,12 @@ service cloud.firestore {
       allow update, delete: if isSignedIn() && request.auth.uid == resource.data.createdBy;
     }
 
+    // schedules: 생성/조회/수정/삭제 모두 작성자 본인만 가능 (SchedulePage가 createdBy로 조회)
+    match /schedules/{scheduleId} {
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.createdBy;
+      allow read, update, delete: if isSignedIn() && request.auth.uid == resource.data.createdBy;
+    }
+
     // couples: 읽기는 멤버만 가능. 생성은 본인만 멤버로 한 채로 허용.
     // 클라이언트에서 스스로 초대 코드로 참여하거나 탈퇴할 수 있도록 제한적으로 허용.
     match /couples/{coupleId} {

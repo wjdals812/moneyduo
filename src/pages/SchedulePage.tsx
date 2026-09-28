@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { collection, query, where, getDocs, addDoc, deleteDoc, doc } from "firebase/firestore";
+import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
 import BottomNav from "../components/BottomNav";
 import { theme } from "../theme";
 
@@ -39,6 +39,7 @@ const SchedulePage = () => {
   const navigate = useNavigate();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [type, setType] = useState<"schedule" | "anniversary">("schedule");
   const [title, setTitle] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
@@ -65,14 +66,27 @@ const SchedulePage = () => {
     if (!title || !selectedDate) return alert("제목과 날짜를 입력해주세요.");
     const uid = auth.currentUser?.uid;
     if (!uid) return;
-    await addDoc(collection(db, "schedules"), {
-      title, date: selectedDate, memo, type,
-      createdBy: uid,
-      createdAt: new Date(),
-    });
-    setTitle(""); setMemo("");
+    if (editingId) {
+      await updateDoc(doc(db, "schedules", editingId), { title, date: selectedDate, memo, type });
+    } else {
+      await addDoc(collection(db, "schedules"), {
+        title, date: selectedDate, memo, type,
+        createdBy: uid,
+        createdAt: new Date(),
+      });
+    }
+    setTitle(""); setMemo(""); setEditingId(null);
     setShowModal(false);
     await loadData(uid);
+  };
+
+  const openEdit = (item: Schedule) => {
+    setEditingId(item.id);
+    setType(item.type);
+    setTitle(item.title);
+    setSelectedDate(item.date);
+    setMemo(item.memo ?? "");
+    setShowModal(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -209,7 +223,7 @@ const SchedulePage = () => {
               {formatDate(focusedDate)}
             </div>
             <button
-              onClick={() => { setSelectedDate(focusedDate); setShowModal(true); }}
+              onClick={() => { setEditingId(null); setTitle(""); setMemo(""); setType("schedule"); setSelectedDate(focusedDate); setShowModal(true); }}
               style={{
                 padding: "6px 12px", borderRadius: theme.radiusSm,
                 background: theme.accent,
@@ -255,11 +269,18 @@ const SchedulePage = () => {
               <div style={{ fontSize: "14px", fontWeight: 600, color: theme.text }}>{item.title}</div>
               {item.memo && <div style={{ fontSize: "12px", color: theme.textMuted, marginTop: 4 }}>{item.memo}</div>}
             </div>
-            <button onClick={() => handleDelete(item.id)} style={{
-              fontSize: "12px", color: theme.textMuted,
-              background: theme.surfaceMuted, border: `1px solid ${theme.border}`,
-              borderRadius: theme.radiusSm, padding: "6px 10px", cursor: "pointer", fontWeight: 600,
-            }}>삭제</button>
+            <div style={{ display: "flex", gap: 6 }}>
+              <button onClick={() => openEdit(item)} style={{
+                fontSize: "12px", color: theme.textMuted,
+                background: theme.surfaceMuted, border: `1px solid ${theme.border}`,
+                borderRadius: theme.radiusSm, padding: "6px 10px", cursor: "pointer", fontWeight: 600,
+              }}>수정</button>
+              <button onClick={() => handleDelete(item.id)} style={{
+                fontSize: "12px", color: theme.textMuted,
+                background: theme.surfaceMuted, border: `1px solid ${theme.border}`,
+                borderRadius: theme.radiusSm, padding: "6px 10px", cursor: "pointer", fontWeight: 600,
+              }}>삭제</button>
+            </div>
           </div>
         ))}
       </div>
@@ -314,7 +335,7 @@ const SchedulePage = () => {
             </div>
 
             <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={() => setShowModal(false)} style={{
+              <button onClick={() => { setShowModal(false); setEditingId(null); }} style={{
                 flex: 1, padding: "10px", borderRadius: theme.radiusSm,
                 background: theme.surfaceMuted, color: theme.textMuted,
                 border: `1px solid ${theme.border}`, cursor: "pointer", fontWeight: 600, fontSize: "13px",
@@ -324,7 +345,7 @@ const SchedulePage = () => {
                 background: theme.accent,
                 color: "white", border: "none", cursor: "pointer",
                 fontWeight: 600, fontSize: "13px",
-              }}>추가하기</button>
+              }}>{editingId ? "수정하기" : "추가하기"}</button>
             </div>
           </div>
         </div>
