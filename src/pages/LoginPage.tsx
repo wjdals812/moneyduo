@@ -1,5 +1,4 @@
-import { signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
-import { FirebaseError } from "firebase/app";
+import { signInWithPopup, signInAnonymously, onAuthStateChanged } from "firebase/auth";
 import { auth, provider, db } from "../firebase";
 import { useNavigate } from "react-router-dom";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
@@ -15,13 +14,13 @@ const LoginPage = () => {
     return () => unsubscribe();
   }, [navigate]);
 
-  const ensureUserDoc = async (user: { uid: string; displayName: string | null; email: string | null }) => {
+  const ensureUserDoc = async (user: { uid: string; displayName: string | null; email: string | null }, defaultName = "") => {
     const userRef = doc(db, "users", user.uid);
     const userSnap = await getDoc(userRef);
     if (!userSnap.exists()) {
       await setDoc(userRef, {
         uid: user.uid,
-        displayName: user.displayName || "",
+        displayName: user.displayName || defaultName,
         email: user.email || "",
         createdAt: serverTimestamp(),
       });
@@ -38,23 +37,12 @@ const LoginPage = () => {
     }
   };
 
-  // 포트폴리오 시연용 데모 계정 (Firebase Auth에 이메일/비밀번호 로그인 활성화 필요)
-  const DEMO_EMAIL = "demo@moneyduo.app";
-  const DEMO_PASSWORD = "moneyduo-demo-2026";
-
+  // 포트폴리오 시연용 데모 로그인 (Firebase Auth에 익명 로그인 활성화 필요)
+  // 방문자마다 독립된 uid를 받도록 익명 로그인 사용 (계정 공유 시 서로 데이터를 덮어쓰는 문제 방지)
   const handleDemoLogin = async () => {
     try {
-      let result;
-      try {
-        result = await signInWithEmailAndPassword(auth, DEMO_EMAIL, DEMO_PASSWORD);
-      } catch (error) {
-        if (error instanceof FirebaseError && (error.code === "auth/user-not-found" || error.code === "auth/invalid-credential")) {
-          result = await createUserWithEmailAndPassword(auth, DEMO_EMAIL, DEMO_PASSWORD);
-        } else {
-          throw error;
-        }
-      }
-      await ensureUserDoc(result.user);
+      const result = await signInAnonymously(auth);
+      await ensureUserDoc(result.user, "데모 사용자");
       navigate("/home");
     } catch (error) {
       console.error("데모 로그인 실패:", error);
