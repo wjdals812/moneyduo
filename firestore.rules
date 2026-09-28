@@ -13,9 +13,11 @@ service cloud.firestore {
         request.auth.uid == userId
         || (
           // 같은 coupleId를 가질 때 읽기 허용
+          // coupleId 필드가 아예 없는 문서(가입 직후)에서 .data.coupleId로 바로 접근하면
+          // 평가 오류로 permission-denied가 나므로 get(key, default)로 안전하게 읽는다
           exists(/databases/$(database)/documents/users/$(request.auth.uid))
-          && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.coupleId == resource.data.coupleId
-          && resource.data.coupleId != null
+          && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('coupleId', null) == resource.data.get('coupleId', null)
+          && resource.data.get('coupleId', null) != null
         )
       );
 
@@ -30,11 +32,11 @@ service cloud.firestore {
           // 기존 문서가 없을 때는 허용 (create 경로로 처리)
           !exists(/databases/$(database)/documents/users/$(userId))
           || (
-            request.resource.data.coupleId == resource.data.coupleId
-            || request.resource.data.coupleId == null
+            request.resource.data.get('coupleId', null) == resource.data.get('coupleId', null)
+            || request.resource.data.get('coupleId', null) == null
             || (
               request.resource.data.coupleId is string
-              && resource.data.coupleId == null
+              && resource.data.get('coupleId', null) == null
               && exists(/databases/$(database)/documents/couples/$(request.resource.data.coupleId))
               && get(/databases/$(database)/documents/couples/$(request.resource.data.coupleId)).data.members.hasAny([request.auth.uid])
             )
