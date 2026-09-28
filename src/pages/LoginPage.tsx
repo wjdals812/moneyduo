@@ -3,6 +3,7 @@ import { auth, provider, db } from "../firebase";
 import { useNavigate } from "react-router-dom";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { useEffect } from "react";
+import { theme } from "../theme";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -39,142 +40,36 @@ const LoginPage = () => {
   return (
     <div style={{
       minHeight: "100svh",
-      background: "#f5f3ff",
+      background: theme.bg,
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
       padding: "24px",
-      position: "relative",
-      overflow: "hidden",
       maxWidth: "400px",
       margin: "0 auto",
     }}>
 
-      {/* 배경 장식 원들 */}
-      <div style={{
-        position: "absolute", top: "-80px", right: "-60px",
-        width: "280px", height: "280px",
-        borderRadius: "50%",
-        background: "radial-gradient(circle, rgba(155, 142, 196, 0.18), transparent)",
-        filter: "blur(50px)",
-        pointerEvents: "none",
-      }} />
-      <div style={{
-        position: "absolute", bottom: "80px", left: "-80px",
-        width: "260px", height: "260px",
-        borderRadius: "50%",
-        background: "radial-gradient(circle, rgba(155, 142, 196, 0.18), transparent)",
-        filter: "blur(50px)",
-        pointerEvents: "none",
-      }} />
-
-      {/* 별/하트 장식들 */}
-      {[
-        { top: "12%", left: "10%", size: 14, emoji: "✨" },
-        { top: "18%", right: "12%", size: 16, emoji: "💫" },
-        { top: "70%", right: "8%", size: 13, emoji: "⭐" },
-        { top: "75%", left: "12%", size: 15, emoji: "✨" },
-        { top: "40%", left: "5%", size: 12, emoji: "🌸" },
-        { top: "35%", right: "5%", size: 12, emoji: "🌸" },
-      ].map((item, i) => (
-        <div key={i} style={{
-          position: "absolute",
-          top: item.top,
-          left: (item as any).left,
-          right: (item as any).right,
-          fontSize: item.size,
-          opacity: 0.6,
-          animation: `float${i % 3} ${3 + i * 0.4}s ease-in-out infinite`,
-          pointerEvents: "none",
-        }}>
-          {item.emoji}
-        </div>
-      ))}
-
-      <style>{`
-
-        @keyframes float0 {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-8px) rotate(5deg); }
-        }
-        @keyframes float1 {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-6px) rotate(-5deg); }
-        }
-        @keyframes float2 {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-10px) rotate(3deg); }
-        }
-        @keyframes heartbeat {
-          0%, 100% { transform: scale(1); }
-          30% { transform: scale(1.18); }
-          60% { transform: scale(1.08); }
-        }
-        @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes btnPop {
-          0%, 100% { transform: scale(1); box-shadow: 0 4px 20px #7f77dd40; }
-          50% { transform: scale(1.015); box-shadow: 0 8px 28px #7f77dd60; }
-        }
-        .login-btn:hover {
-          transform: scale(1.04) !important;
-          box-shadow: 0 8px 32px rgba(127, 119, 221, 0.3) !important;
-        }
-        .login-btn:active {
-          transform: scale(0.97) !important;
-        }
-      `}</style>
-
       {/* 메인 카드 */}
       <div style={{
-        background: "rgba(255,255,255,0.88)",
-        backdropFilter: "blur(12px)",
-        borderRadius: "32px",
-        border: "1.5px solid rgba(184, 174, 222, 0.35)",
-        padding: "44px 36px 40px",
+        background: theme.surface,
+        borderRadius: theme.radiusLg,
+        border: `1px solid ${theme.border}`,
+        padding: "40px 32px",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         width: "100%",
         maxWidth: "320px",
-        boxShadow: "0 12px 40px rgba(127, 119, 221, 0.1), 0 2px 8px rgba(167, 139, 250, 0.08)",
-        animation: "fadeUp 0.6s ease both",
-        position: "relative",
-        zIndex: 1,
       }}>
-
-        {/* 커플 일러스트 영역 */}
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "6px",
-          marginBottom: "4px",
-          animation: "fadeUp 0.6s 0.1s ease both",
-          opacity: 0,
-          animationFillMode: "forwards",
-        }}>
-          <div style={{ fontSize: 42 }}>🐰</div>
-          <div style={{
-            fontSize: 22,
-            animation: "heartbeat 1.6s ease-in-out infinite",
-            display: "inline-block",
-          }}>💜</div>
-          <div style={{ fontSize: 42 }}>🐻</div>
-        </div>
 
         {/* 타이틀 */}
         <h1 style={{
-          fontSize: "32px",
+          fontSize: "26px",
           fontWeight: 700,
-          color: "#534AB7",
-          margin: "10px 0 4px",
-          letterSpacing: "-0.5px",
-          animation: "fadeUp 0.6s 0.2s ease both",
-          opacity: 0,
-          animationFillMode: "forwards",
+          color: theme.text,
+          margin: "0 0 4px",
+          letterSpacing: "-0.3px",
         }}>
           MoneyDuo
         </h1>
@@ -182,57 +77,34 @@ const LoginPage = () => {
         {/* 서브타이틀 */}
         <p style={{
           fontSize: "13px",
-          color: "#8882cc",
-          marginBottom: "32px",
+          color: theme.textMuted,
+          marginBottom: "28px",
           textAlign: "center",
           lineHeight: 1.6,
-          animation: "fadeUp 0.6s 0.3s ease both",
-          opacity: 0,
-          animationFillMode: "forwards",
         }}>
-          우리 둘이 함께하는<br />
-          <span style={{ color: "#7f77dd", fontWeight: 700 }}>가계부 💕</span>
+          둘이 함께 쓰는 가계부
         </p>
 
-        {/* 구분선 장식 */}
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "8px",
-          width: "100%",
-          marginBottom: "24px",
-          animation: "fadeUp 0.6s 0.35s ease both",
-          opacity: 0,
-          animationFillMode: "forwards",
-        }}>
-          <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, rgba(184, 174, 222, 0.4))" }} />
-          <span style={{ fontSize: 14 }}>🌷</span>
-          <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, rgba(184, 174, 222, 0.4))" }} />
-        </div>
+        {/* 구분선 */}
+        <div style={{ width: "100%", height: "1px", background: theme.border, marginBottom: "24px" }} />
 
         {/* 구글 로그인 버튼 */}
         <button
-          className="login-btn"
           onClick={handleGoogleLogin}
           style={{
             width: "100%",
-            background: "linear-gradient(135deg, #7f77dd, #a78bfa)",
+            background: theme.accent,
             border: "none",
-            borderRadius: "18px",
-            padding: "15px 24px",
+            borderRadius: theme.radiusMd,
+            padding: "13px 24px",
             color: "white",
             fontSize: "14px",
-            fontWeight: 800,
+            fontWeight: 600,
             cursor: "pointer",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             gap: "10px",
-            animation: "fadeUp 0.6s 0.4s ease both, btnPop 3s 1s ease-in-out infinite",
-            opacity: 0,
-            animationFillMode: "forwards",
-            transition: "transform 0.15s ease, box-shadow 0.15s ease",
-            letterSpacing: "0.2px",
           }}
         >
           {/* 구글 SVG 아이콘 */}
@@ -245,13 +117,10 @@ const LoginPage = () => {
         {/* 하단 문구 */}
         <p style={{
           fontSize: "11px",
-          color: "#b0a8e8",
-          marginTop: "18px",
-          animation: "fadeUp 0.6s 0.5s ease both",
-          opacity: 0,
-          animationFillMode: "forwards",
+          color: theme.textFaint,
+          marginTop: "16px",
         }}>
-          둘이 함께 로그인해보세요 🐾
+          둘이 함께 로그인해보세요
         </p>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
+import { theme } from "../theme";
 
 // 홈 아이콘
 const HomeIcon = ({ active }: { active: boolean }) =>
@@ -90,19 +91,22 @@ const BottomNav = () => {
   const location = useLocation();
 
   return (
-    <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[400px] bg-white border-t-2 border-[#c9c2f5] flex justify-around py-2 pb-4 z-30">
+    <div
+      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[400px] bg-white flex justify-around py-2 pb-4 z-30"
+      style={{ borderTop: `1px solid ${theme.border}` }}
+    >
       {menus.map(({ path, label, Icon }) => {
         const active = location.pathname === path;
+        const color = active ? theme.accent : theme.textFaint;
         return (
           <div
             key={path}
             onClick={() => navigate(path)}
             className="flex flex-col items-center gap-1 cursor-pointer"
+            style={{ color }}
           >
-            <span className={active ? "text-[#7f77dd]" : "text-[#c9c2f5]"}>
-              <Icon active={active} />
-            </span>
-            <span className={`text-[10px] font-bold ${active ? "text-[#7f77dd]" : "text-[#c9c2f5]"}`}>
+            <Icon active={active} />
+            <span className="text-[10px] font-semibold" style={{ color }}>
               {label}
             </span>
           </div>

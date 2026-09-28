@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db, auth } from "../firebase";
 import coupleService from "../services/coupleService";
+import { theme } from "../theme";
 
 const EditTransactionPage = () => {
   const navigate = useNavigate();
@@ -76,96 +77,92 @@ const EditTransactionPage = () => {
   return (
     <div style={{
       minHeight: "100svh",
-      background: "#f5f3ff",
+      background: theme.bg,
       maxWidth: "400px",
       margin: "0 auto",
       paddingBottom: "40px",
     }}>
 
       <div style={{
-        background: "#ffffff",
-        padding: "28px 20px 36px",
-        borderRadius: "0 0 32px 32px",
-        boxShadow: "0 4px 16px rgba(0,0,0,0.06)",
+        background: theme.surface,
+        padding: "20px",
+        borderBottom: `1px solid ${theme.border}`,
         display: "flex",
         alignItems: "center",
         gap: "12px",
       }}>
         <button onClick={() => navigate("/home")} style={{
-          background: "#f2f0fa",
-          border: "1.5px solid rgba(155, 142, 196, 0.3)",
-          borderRadius: "12px",
-          color: "#7A6FA8",
+          background: theme.surfaceMuted,
+          border: `1px solid ${theme.border}`,
+          borderRadius: theme.radiusSm,
+          color: theme.textMuted,
           fontSize: "16px",
-          width: "36px", height: "36px",
+          width: "32px", height: "32px",
           cursor: "pointer",
           display: "flex", alignItems: "center", justifyContent: "center",
         }}>←</button>
-        <div style={{ fontSize: "18px", fontWeight: 800, color: "#5a4e7a" }}>내역 수정 ✏️</div>
+        <div style={{ fontSize: "16px", fontWeight: 700, color: theme.text }}>내역 수정</div>
       </div>
 
-      <div style={{ padding: "20px 16px", display: "flex", flexDirection: "column", gap: "16px" }}>
+      <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "16px" }}>
 
         {/* 지출/수입 */}
         <div style={{ display: "flex", gap: "8px" }}>
           {(["expense", "income"] as const).map((t) => (
             <button key={t} onClick={() => setType(t)} style={{
               flex: 1, padding: "10px",
-              borderRadius: "14px", fontSize: "13px", fontWeight: 800,
-              cursor: "pointer", border: "2px solid",
-              borderColor: type === t ? "#7f77dd" : "#c9c2f5",
-              background: type === t ? "#eeedfe" : "white",
-              color: type === t ? "#534AB7" : "#afa9ec",
-              transition: "all 0.15s",
+              borderRadius: theme.radiusSm, fontSize: "13px", fontWeight: 600,
+              cursor: "pointer",
+              border: `1px solid ${type === t ? theme.accent : theme.border}`,
+              background: type === t ? theme.accentMuted : theme.surface,
+              color: type === t ? theme.accent : theme.textMuted,
             }}>{t === "expense" ? "지출" : "수입"}</button>
           ))}
         </div>
 
         {/* 금액 */}
         <div>
-          <div style={{ fontSize: "11px", color: "#8882cc", fontWeight: 800, marginBottom: "6px" }}>금액</div>
+          <div style={{ fontSize: "11px", color: theme.textMuted, fontWeight: 600, marginBottom: "6px" }}>금액</div>
           <input type="number" placeholder="0" value={amount}
             onChange={(e) => setAmount(e.target.value)}
             style={{
-              width: "100%", padding: "12px 16px", boxSizing: "border-box",
-              borderRadius: "16px", border: "2px solid #c9c2f5",
-              fontSize: "20px", fontWeight: 900, color: "#534AB7",
-              outline: "none", background: "white",
+              width: "100%", padding: "12px 14px", boxSizing: "border-box",
+              borderRadius: theme.radiusSm, border: `1px solid ${theme.border}`,
+              fontSize: "18px", fontWeight: 700, color: theme.text,
+              outline: "none", background: theme.surface, fontVariantNumeric: "tabular-nums",
             }} />
         </div>
 
         {/* 내용 */}
         <div>
-          <div style={{ fontSize: "11px", color: "#8882cc", fontWeight: 800, marginBottom: "6px" }}>내용</div>
+          <div style={{ fontSize: "11px", color: theme.textMuted, fontWeight: 600, marginBottom: "6px" }}>내용</div>
           <input type="text" placeholder="어디서 썼나요?" value={description}
             onChange={(e) => setDescription(e.target.value)}
             style={{
-              width: "100%", padding: "12px 16px", boxSizing: "border-box",
-              borderRadius: "16px", border: "2px solid #c9c2f5",
-              fontSize: "13px", outline: "none", background: "white",
+              width: "100%", padding: "12px 14px", boxSizing: "border-box",
+              borderRadius: theme.radiusSm, border: `1px solid ${theme.border}`,
+              fontSize: "13px", outline: "none", background: theme.surface,
             }} />
         </div>
 
         {/* 카테고리 */}
         <div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-            <div style={{ fontSize: "11px", color: "#8882cc", fontWeight: 800 }}>카테고리</div>
+            <div style={{ fontSize: "11px", color: theme.textMuted, fontWeight: 600 }}>카테고리</div>
             <button onClick={() => navigate("/categories")} style={{
-              fontSize: "11px", fontWeight: 800, color: "#7f77dd",
-              background: "#eeedfe", border: "1.5px solid #c9c2f5",
-              borderRadius: "10px", padding: "4px 10px", cursor: "pointer",
-            }}>관리 ⚙️</button>
+              fontSize: "11px", fontWeight: 600, color: theme.accent,
+              background: theme.accentMuted, border: `1px solid ${theme.border}`,
+              borderRadius: theme.radiusSm, padding: "4px 10px", cursor: "pointer",
+            }}>관리</button>
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
             {categories.map((cat) => (
               <button key={cat} onClick={() => setCategory(cat)} style={{
-                padding: "8px 12px", borderRadius: "12px",
-                fontSize: "12px", fontWeight: 800, cursor: "pointer",
-                border: "2px solid",
-                borderColor: category === cat ? "#7f77dd" : "#c9c2f5",
-                background: category === cat ? "#eeedfe" : "white",
-                color: category === cat ? "#534AB7" : "#888",
-                transition: "all 0.15s",
+                padding: "8px 12px", borderRadius: theme.radiusSm,
+                fontSize: "12px", fontWeight: 600, cursor: "pointer",
+                border: `1px solid ${category === cat ? theme.accent : theme.border}`,
+                background: category === cat ? theme.accentMuted : theme.surface,
+                color: category === cat ? theme.accent : theme.textMuted,
               }}>{cat}</button>
             ))}
           </div>
@@ -173,17 +170,16 @@ const EditTransactionPage = () => {
 
         {/* 누가 */}
         <div>
-          <div style={{ fontSize: "11px", color: "#8882cc", fontWeight: 800, marginBottom: "6px" }}>누가 썼나요?</div>
+          <div style={{ fontSize: "11px", color: theme.textMuted, fontWeight: 600, marginBottom: "6px" }}>누가 썼나요?</div>
           <div style={{ display: "flex", gap: "8px" }}>
             {(["me", "together", "partner"] as const).map((p) => (
               <button key={p} onClick={() => setPaidBy(p)} style={{
                 flex: 1, padding: "10px",
-                borderRadius: "14px", fontSize: "13px", fontWeight: 800,
-                cursor: "pointer", border: "2px solid",
-                borderColor: paidBy === p ? "#7f77dd" : "#c9c2f5",
-                background: paidBy === p ? "#eeedfe" : "white",
-                color: paidBy === p ? "#534AB7" : "#afa9ec",
-                transition: "all 0.15s",
+                borderRadius: theme.radiusSm, fontSize: "13px", fontWeight: 600,
+                cursor: "pointer",
+                border: `1px solid ${paidBy === p ? theme.accent : theme.border}`,
+                background: paidBy === p ? theme.accentMuted : theme.surface,
+                color: paidBy === p ? theme.accent : theme.textMuted,
               }}>{p === "me" ? "나" : p === "together" ? "같이" : "짝꿍"}</button>
             ))}
           </div>
@@ -191,24 +187,23 @@ const EditTransactionPage = () => {
 
         {/* 날짜 */}
         <div>
-          <div style={{ fontSize: "11px", color: "#8882cc", fontWeight: 800, marginBottom: "6px" }}>날짜</div>
+          <div style={{ fontSize: "11px", color: theme.textMuted, fontWeight: 600, marginBottom: "6px" }}>날짜</div>
           <input type="date" value={date} onChange={(e) => setDate(e.target.value)}
             style={{
-              width: "100%", padding: "12px 16px", boxSizing: "border-box",
-              borderRadius: "16px", border: "2px solid #c9c2f5",
-              fontSize: "13px", outline: "none", background: "white",
+              width: "100%", padding: "12px 14px", boxSizing: "border-box",
+              borderRadius: theme.radiusSm, border: `1px solid ${theme.border}`,
+              fontSize: "13px", outline: "none", background: theme.surface,
             }} />
         </div>
 
         <button onClick={handleUpdate} style={{
-            width: "100%", padding: "16px",
-            borderRadius: "20px",
-            background: "linear-gradient(135deg, #7f77dd, #a78bfa)",
-            color: "white", fontSize: "15px", fontWeight: 900,
+            width: "100%", padding: "14px",
+            borderRadius: theme.radiusMd,
+            background: theme.accent,
+            color: "white", fontSize: "14px", fontWeight: 700,
             border: "none", cursor: "pointer",
-            boxShadow: "0 4px 20px #7f77dd60",
             marginTop: "4px",
-          }}>수정하기 💜
+          }}>수정하기
         </button>
       </div>
     </div>

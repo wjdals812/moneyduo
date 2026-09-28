@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { theme } from "../theme";
 
 interface MonthNavigatorProps {
   month: Date;
@@ -35,28 +36,27 @@ const MonthNavigator = ({ month, onChange }: MonthNavigatorProps) => {
     <div style={{
       position: "relative",
       display: "grid",
-      gridTemplateColumns: "48px minmax(0, 1fr) 48px",
+      gridTemplateColumns: "36px minmax(0, 1fr) 36px",
       alignItems: "center",
-      background: "#ffffff",
-      borderRadius: "16px",
-      border: "1px solid rgba(148, 163, 184, 0.16)",
-      padding: "12px 16px",
-      gap: "12px",
+      background: theme.surface,
+      borderRadius: theme.radiusMd,
+      border: `1px solid ${theme.border}`,
+      padding: "10px 12px",
+      gap: "10px",
       minWidth: 0,
     }}>
       <button onClick={handlePrevMonth} style={{
         all: "unset",
         cursor: "pointer",
-        width: "40px",
-        height: "40px",
-        borderRadius: "12px",
-        background: "#f4f6f8",
+        width: "32px",
+        height: "32px",
+        borderRadius: theme.radiusSm,
+        background: theme.surfaceMuted,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        color: "#4b5563",
-        fontSize: "18px",
-        boxShadow: "0 2px 8px rgba(71, 85, 105, 0.08)",
+        color: theme.textMuted,
+        fontSize: "16px",
       }}>‹</button>
       <button onClick={toggleMonthPicker} style={{
         all: "unset",
@@ -66,35 +66,34 @@ const MonthNavigator = ({ month, onChange }: MonthNavigatorProps) => {
         justifyContent: "center",
         width: "100%",
         minWidth: 0,
-        padding: "10px 12px",
-        borderRadius: "14px",
-        background: "#f8fafc",
-        color: "#334155",
-        fontSize: "15px",
-        fontWeight: 700,
+        padding: "8px 12px",
+        borderRadius: theme.radiusSm,
+        background: theme.surfaceMuted,
+        color: theme.text,
+        fontSize: "14px",
+        fontWeight: 600,
         cursor: "pointer",
-        border: "1px solid rgba(127, 119, 221, 0.3)",
+        border: `1px solid ${theme.border}`,
         textAlign: "center",
         whiteSpace: "nowrap",
         overflow: "hidden",
         textOverflow: "ellipsis",
       }}>
         {month.getFullYear()}년 {month.getMonth() + 1}월
-        <span style={{ marginLeft: "8px", color: "#475569" }}>▾</span>
+        <span style={{ marginLeft: "8px", color: theme.textMuted }}>▾</span>
       </button>
       <button onClick={handleNextMonth} style={{
         all: "unset",
         cursor: "pointer",
-        width: "40px",
-        height: "40px",
-        borderRadius: "12px",
-        background: "#f4f6f8",
+        width: "32px",
+        height: "32px",
+        borderRadius: theme.radiusSm,
+        background: theme.surfaceMuted,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        color: "#4b5563",
-        fontSize: "18px",
-        boxShadow: "0 2px 8px rgba(71, 85, 105, 0.08)",
+        color: theme.textMuted,
+        fontSize: "16px",
       }}>›</button>
       {showMonthPicker && (
         <div style={{
@@ -103,46 +102,46 @@ const MonthNavigator = ({ month, onChange }: MonthNavigatorProps) => {
           top: "110%",
           transform: "translateX(-50%)",
           width: "calc(100% - 16px)",
-          background: "#ffffff",
-          borderRadius: "20px",
-          border: "1px solid rgba(148, 163, 184, 0.16)",
-          boxShadow: "0 18px 50px rgba(71, 85, 105, 0.08)",
-          padding: "18px",
+          background: theme.surface,
+          borderRadius: theme.radiusMd,
+          border: `1px solid ${theme.border}`,
+          boxShadow: "0 8px 24px rgba(15, 23, 42, 0.08)",
+          padding: "16px",
           zIndex: 10,
         }}>
-          <div style={{ marginBottom: "12px", fontSize: "13px", color: "#6b6b6b", fontWeight: 700 }}>
+          <div style={{ marginBottom: "10px", fontSize: "12px", color: theme.textMuted, fontWeight: 600 }}>
             연도 선택
           </div>
-          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "16px" }}>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "16px" }}>
             {yearOptions.map((year) => (
               <button key={year} onClick={() => handleSelectYear(year)} style={{
                 all: "unset",
                 cursor: "pointer",
-                padding: "10px 14px",
-                borderRadius: "14px",
-                background: year === month.getFullYear() ? "#7A6FA8" : "#f8fafc",
-                color: year === month.getFullYear() ? "white" : "#475569",
-                fontWeight: 700,
-                fontSize: "13px",
+                padding: "8px 12px",
+                borderRadius: theme.radiusSm,
+                background: year === month.getFullYear() ? theme.accent : theme.surfaceMuted,
+                color: year === month.getFullYear() ? "white" : theme.textMuted,
+                fontWeight: 600,
+                fontSize: "12px",
               }}>
                 {year}년
               </button>
             ))}
           </div>
-          <div style={{ marginBottom: "12px", fontSize: "13px", color: "#6b6b6b", fontWeight: 700 }}>
+          <div style={{ marginBottom: "10px", fontSize: "12px", color: theme.textMuted, fontWeight: 600 }}>
             월 선택
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: "10px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: "8px" }}>
             {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
               <button key={m} onClick={() => handleSelectMonth(m)} style={{
                 all: "unset",
                 cursor: "pointer",
-                padding: "10px 0",
-                borderRadius: "12px",
-                background: m === month.getMonth() + 1 ? "#7A6FA8" : "#f8fafc",
-                border: "1px solid rgba(155, 142, 196, 0.3)",
-                color: m === month.getMonth() + 1 ? "white" : "#475569",
-                fontSize: "13px",
+                padding: "8px 0",
+                borderRadius: theme.radiusSm,
+                background: m === month.getMonth() + 1 ? theme.accent : theme.surfaceMuted,
+                border: `1px solid ${theme.border}`,
+                color: m === month.getMonth() + 1 ? "white" : theme.textMuted,
+                fontSize: "12px",
                 textAlign: "center",
               }}>
                 {m}월

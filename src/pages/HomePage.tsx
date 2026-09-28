@@ -7,6 +7,7 @@ import { collection, query, where, orderBy, limit, getDocs, getDoc, doc } from "
 import BottomNav from "../components/BottomNav";
 import MonthNavigator from "../components/MonthNavigator";
 import type { Transaction } from "../types/index";
+import { theme } from "../theme";
 
 // ─────────────────────────────────────────────
 // 📅 월(month) 포맷팅 헬퍼 함수
@@ -54,8 +55,6 @@ const HomePage = () => {
   const [totalIncome, setTotalIncome] = useState(0);           // 총 수입 합계
   const [loading, setLoading] = useState(true);                // Firebase 인증 응답 대기 중 여부
                                                                // (true일 때 로딩 화면 표시 → flash 방지)
-  const [partnerEmoji, setPartnerEmoji] = useState("🐻");
-  const [myEmoji, setMyEmoji] = useState("🐰");
   const [month, setMonth] = useState<Date>(new Date());
 
   // ── Refs ───────────────────────────────────
@@ -151,7 +150,6 @@ const HomePage = () => {
       // 커플 문서가 삭제됐거나 null이면 파트너 정보 초기화
       if (!data) {
         setPartnerName("");
-        setPartnerEmoji("🐻");
         setInviteCode("");
         return;
       }
@@ -167,11 +165,9 @@ const HomePage = () => {
         const userSnap = await getDoc(doc(db, "users", partnerUid));
         const p = userSnap.exists() ? (userSnap.data() as any) : null;
         setPartnerName(p?.displayName || "");
-        setPartnerEmoji(p?.emoji || "🐻");
       } else {
         // 아직 파트너가 참여하지 않은 상태
         setPartnerName("");
-        setPartnerEmoji("🐻");
       }
     });
   };
@@ -187,17 +183,6 @@ const HomePage = () => {
       if (user) {
         // ── 로그인된 상태 ──
         setUserName(user.displayName || "");
-
-        try {
-          // 추가: 내 이모지 읽기 (실패해도 아래 내역 조회는 계속 진행)
-          const userSnap = await getDoc(doc(db, "users", user.uid));
-          if (userSnap.exists()) {
-            setMyEmoji(userSnap.data().emoji || "🐰");
-          }
-        } catch (e) {
-          console.error(e);
-        }
-
         await loadTransactions(user.uid, formatMonthKey(month));
 
       } else {
@@ -225,12 +210,12 @@ const HomePage = () => {
   if (loading) return (
     <div style={{
       minHeight: "100svh",
-      background: "#f5f3ff",
+      background: theme.bg,
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
     }}>
-      <div style={{ fontSize: 36, animation: "heartbeat 1.6s ease-in-out infinite" }}>💜</div>
+      <div style={{ fontSize: "13px", fontWeight: 600, color: theme.textMuted }}>불러오는 중…</div>
     </div>
   );
 
@@ -242,81 +227,35 @@ const HomePage = () => {
   return (
     <div style={{
       minHeight: "100svh",
-      background: "#f5f3ff",
+      background: theme.bg,
       maxWidth: "400px",
       margin: "0 auto",
       paddingBottom: "180px",
       position: "relative",
     }}>
 
-      <style>{`
-        @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(16px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes float0 {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-6px); }
-        }
-        @keyframes shimmer {
-          0% { background-position: -200% center; }
-          100% { background-position: 200% center; }
-        }
-        .tx-card:hover {
-          transform: translateX(3px);
-          box-shadow: 0 4px 20px rgba(155, 142, 196, 0.15) !important;
-        }
-        .fab-btn:hover {
-          transform: scale(1.1) !important;
-          box-shadow: 0 8px 28px rgba(155, 142, 196, 0.4) !important;
-        }
-        .fab-btn:active {
-          transform: scale(0.95) !important;
-        }
-        .logout-btn:hover {
-          background: rgba(90, 71, 50, 0.15) !important;
-        }
-      `}</style>
-
-      {/* 배경 빛망울 — 장식용 블러 원 */}
-      <div style={{
-        position: "fixed", top: "-100px", right: "-80px",
-        width: "300px", height: "300px", borderRadius: "50%",
-        background: "radial-gradient(circle, rgba(190, 155, 110, 0.15), transparent)",
-        filter: "blur(50px)", pointerEvents: "none", zIndex: 0,
-      }} />
-      <div style={{
-        position: "fixed", bottom: "150px", left: "-100px",
-        width: "280px", height: "280px", borderRadius: "50%",
-        background: "radial-gradient(circle, rgba(210, 170, 120, 0.12), transparent)",
-        filter: "blur(50px)", pointerEvents: "none", zIndex: 0,
-      }} />
-
       {/* ── 헤더 ───────────────────────────────
           - 앱 타이틀
           - 파트너 연결 상태에 따라 "커플 연결" 버튼 or "OO님과 연결됨 + 연결 해제" 버튼 표시
       ─────────────────────────────────────── */}
       <div style={{
-        background: "#ffffff",
-        padding: "28px 20px 36px",
-        borderRadius: "0 0 32px 32px",
-        boxShadow: "0 12px 36px rgba(0, 0, 0, 0.08)",
+        background: theme.surface,
+        padding: "20px",
+        borderBottom: `1px solid ${theme.border}`,
         display: "flex",
         flexDirection: "column",
         gap: "12px",
-        borderBottom: "2px dashed rgba(196, 196, 196, 0.28)",
-        animation: "fadeUp 0.5s ease both",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <div>
-            <div style={{ fontSize: "20px", fontWeight: 800, color: "#3C3489" }}>MoneyDuo</div>
-            <div style={{ fontSize: "13px", fontWeight: 600, color: "#b0a8e8", opacity: 0.85 }}>우리 둘의 재정 현황</div>
+            <div style={{ fontSize: "18px", fontWeight: 700, color: theme.text }}>MoneyDuo</div>
+            <div style={{ fontSize: "12px", fontWeight: 500, color: theme.textMuted }}>우리 둘의 재정 현황</div>
           </div>
           <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
             {partnerName ? (
               /* 파트너가 있는 경우: 이름 + 연결 해제 버튼 */
               <>
-                <div style={{ fontSize: 13, fontWeight: 800, color: "#6B5CE7" }}>{partnerName}님과 연결됨</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: theme.textMuted }}>{partnerName}님과 연결됨</div>
                 <button
                   onClick={async () => {
                     if (!auth.currentUser) return;
@@ -338,7 +277,11 @@ const HomePage = () => {
                       alert(e.message || String(e));
                     }
                   }}
-                  style={{ all: "unset", padding: "8px 10px", background: "#fff0f6", borderRadius: 10, cursor: "pointer", fontWeight: 800 }}
+                  style={{
+                    padding: "6px 10px", background: theme.surfaceMuted,
+                    border: `1px solid ${theme.border}`, borderRadius: theme.radiusSm,
+                    cursor: "pointer", fontWeight: 600, fontSize: "11px", color: theme.textMuted,
+                  }}
                 >
                   연결 해제
                 </button>
@@ -348,15 +291,14 @@ const HomePage = () => {
               <button
                 onClick={() => setShowCoupleModal(true)}
                 style={{
-                  all: "unset",
                   padding: "8px 12px",
-                  background: "linear-gradient(135deg, #9B8EC4, #B8AEDE)",
+                  background: theme.accent,
                   border: "none",
                   color: "white",
-                  borderRadius: "12px",
+                  borderRadius: theme.radiusSm,
                   cursor: "pointer",
                   fontSize: "12px",
-                  fontWeight: 800,
+                  fontWeight: 600,
                 }}
               >
                 커플 연결
@@ -366,17 +308,8 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* ── 월 이동 ─────────────────────────────
-          헤더 아래로 살짝 올라오는 overlap 효과 (margin: -18px)
-      ─────────────────────────────────────── */}
-      <div style={{
-        margin: "-18px 16px 0",
-        position: "relative",
-        zIndex: 2,
-        animation: "fadeUp 0.5s 0.1s ease both",
-        opacity: 0,
-        animationFillMode: "forwards",
-      }}>
+      {/* ── 월 이동 ───────────────────────────── */}
+      <div style={{ margin: "16px 16px 0" }}>
         <MonthNavigator month={month} onChange={setMonth} />
       </div>
 
@@ -384,41 +317,35 @@ const HomePage = () => {
           날짜별로 묶인 거래 내역을 세로로 나열
           내역이 없으면 빈 상태 안내 표시
       ─────────────────────────────────────── */}
-      <div style={{ padding: "20px 16px 0", position: "relative", zIndex: 1 }}>
+      <div style={{ padding: "16px 16px 0" }}>
         {/* ── 요약 카드 ───────────────────────────
             수입 / 지출 / 순액을 3등분 그리드로 표시
         ─────────────────────────────────────── */}
         <div style={{
           marginBottom: "16px",
-          background: "rgba(255,255,255,0.80)",
-          backdropFilter: "blur(16px)",
-          borderRadius: "20px",
-          border: "2px solid rgba(184, 174, 222, 0.35)",
-          boxShadow: "0 4px 24px #B8AEDE22",
+          background: theme.surface,
+          borderRadius: theme.radiusMd,
+          border: `1px solid ${theme.border}`,
           overflow: "hidden",
-          animation: "fadeUp 0.5s 0.2s ease both",
-          opacity: 0,
-          animationFillMode: "forwards",
         }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
             {[
-              { label: "수입", value: `+${totalIncome.toLocaleString()}`, color: "#3B8C3B", bg: "#f0fdf4" },
-              { label: "지출", value: `-${totalExpense.toLocaleString()}`, color: "#d4537e", bg: "#fff0f6" },
-              { label: "순액", value: `${net >= 0 ? "+" : ""}${net.toLocaleString()}`, color: net >= 0 ? "#7A6FA8" : "#d4537e", bg: net >= 0 ? "#f2f0fa" : "#fff0f6" },
+              { label: "수입", value: `+${totalIncome.toLocaleString()}`, color: theme.success },
+              { label: "지출", value: `-${totalExpense.toLocaleString()}`, color: theme.danger },
+              { label: "순액", value: `${net >= 0 ? "+" : ""}${net.toLocaleString()}`, color: net >= 0 ? theme.text : theme.danger },
             ].map((item, i) => (
               <div key={i} style={{
                 display: "flex", flexDirection: "column", alignItems: "center",
-                padding: "8px 4px",
-                borderRight: i < 2 ? "1.5px solid #e8e4f5" : "none",
-                background: item.bg,
+                padding: "12px 4px",
+                borderRight: i < 2 ? `1px solid ${theme.border}` : "none",
               }}>
-                <span style={{ fontSize: "10px", color: "#6b65a8", fontWeight: 800, marginBottom: "2px" }}>
+                <span style={{ fontSize: "11px", color: theme.textMuted, fontWeight: 600, marginBottom: "4px" }}>
                   {item.label}
                 </span>
-                <span style={{ fontSize: "13px", fontWeight: 900, color: item.color, letterSpacing: "-0.3px" }}>
+                <span style={{ fontSize: "14px", fontWeight: 700, color: item.color, fontVariantNumeric: "tabular-nums" }}>
                   {item.value}
                 </span>
-                <span style={{ fontSize: "10px", fontWeight: 800, color: "#6b65a8", marginTop: "1px" }}>원</span>
+                <span style={{ fontSize: "10px", fontWeight: 500, color: theme.textFaint, marginTop: "1px" }}>원</span>
               </div>
             ))}
           </div>
@@ -426,104 +353,82 @@ const HomePage = () => {
 
         {grouped.length === 0 ? (
           /* 내역 없음 상태 */
-          <div style={{
-            textAlign: "center", padding: "48px 0",
-            animation: "fadeUp 0.5s 0.3s ease both", opacity: 0, animationFillMode: "forwards",
-          }}>
-            <div style={{ fontSize: 40, marginBottom: 10, animation: "float0 2.5s ease-in-out infinite" }}>🐾</div>
-            <div style={{ fontSize: "13px", color: "#9e99cc", fontWeight: 700 }}>이 달은 아직 내역이 없어요</div>
-            <div style={{ fontSize: "11px", color: "#cfc8f0", marginTop: 4 }}>첫 번째 내역을 추가해보세요 💕</div>
+          <div style={{ textAlign: "center", padding: "48px 0" }}>
+            <div style={{ fontSize: "13px", color: theme.textMuted, fontWeight: 600 }}>이 달은 아직 내역이 없어요</div>
+            <div style={{ fontSize: "11px", color: theme.textFaint, marginTop: 4 }}>첫 번째 내역을 추가해보세요</div>
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-            {grouped.map(([date, txs], gi) => {
+            {grouped.map(([date, txs]) => {
               // 해당 날짜의 순액 계산
               const dayNet =
                 txs.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0) -
                 txs.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
               return (
-                <div key={date} style={{
-                  animation: `fadeUp 0.5s ${0.2 + gi * 0.07}s ease both`,
-                  opacity: 0, animationFillMode: "forwards",
-                }}>
+                <div key={date}>
                   {/* 날짜 헤더 행 */}
                   <div style={{
                     display: "flex", alignItems: "center", gap: "8px",
                     marginBottom: "10px",
                   }}>
                     <div style={{
-                      background: "linear-gradient(135deg, #9B8EC4, #B8AEDE)",
-                      borderRadius: "10px",
-                      padding: "3px 10px",
-                      fontSize: "10px", fontWeight: 800, color: "white",
+                      color: theme.textMuted,
+                      fontSize: "11px", fontWeight: 700,
                       whiteSpace: "nowrap",
-                      boxShadow: "0 2px 8px #9B8EC430",
                     }}>
                       {formatDate(date)}
                     </div>
-                    <div style={{ flex: 1, height: "1px", background: "#ede9fe" }} />
-                    {/* 해당 날짜 순액 (양수면 초록, 음수면 핑크) */}
+                    <div style={{ flex: 1, height: "1px", background: theme.border }} />
+                    {/* 해당 날짜 순액 (양수면 초록, 음수면 빨강) */}
                     <span style={{
-                      fontSize: "10px", fontWeight: 800,
-                      color: dayNet >= 0 ? "#3B8C3B" : "#d4537e",
+                      fontSize: "11px", fontWeight: 600,
+                      color: dayNet >= 0 ? theme.success : theme.danger,
+                      fontVariantNumeric: "tabular-nums",
                     }}>
                       {dayNet >= 0 ? "+" : ""}{dayNet.toLocaleString()}원
                     </span>
                   </div>
 
-                  {/* 해당 날짜의 거래 목록 (타임라인 세로선 포함) */}
-                  <div style={{
-                    display: "flex", flexDirection: "column", gap: "8px",
-                    paddingLeft: "10px",
-                    borderLeft: "2.5px solid #e4dff5", // 타임라인 세로선
-                    marginLeft: "4px",
-                  }}>
+                  {/* 해당 날짜의 거래 목록 */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                     {txs.map((tx) => (
                       <div
                         key={tx.id}
-                        className="tx-card"
                         style={{
-                          background: "rgba(255,255,255,0.75)",
-                          backdropFilter: "blur(8px)",
-                          borderRadius: "16px",
-                          border: "1.5px solid rgba(184,174,222,0.35)",
-                          padding: "11px 14px",
+                          background: theme.surface,
+                          borderRadius: theme.radiusMd,
+                          border: `1px solid ${theme.border}`,
+                          padding: "12px 14px",
                           display: "flex", alignItems: "center", gap: "12px",
-                          cursor: "default",
                         }}
                       >
-                        {/* 카테고리 이모지 아이콘 영역 */}
+                        {/* 카테고리 표시 */}
                         <div style={{
-                          width: "38px", height: "38px", borderRadius: "14px",
-                          background: tx.type === "expense"
-                            ? "linear-gradient(135deg, #ffe4f0, #ffd6ee)" // 지출: 핑크
-                            : "linear-gradient(135deg, #e4f5e4, #d6f0d6)", // 수입: 연초록
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          fontSize: "18px", flexShrink: 0,
+                          fontSize: "18px", flexShrink: 0, width: "24px", textAlign: "center",
                         }}>
-                          {tx.category.split(" ")[0]} {/* 카테고리 첫 번째 토큰 (이모지) */}
+                          {tx.category.split(" ")[0]} {/* 카테고리 첫 번째 토큰 (사용자 입력 이모지) */}
                         </div>
 
                         {/* 내역 설명 + 결제자 */}
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{
-                            fontSize: "13px", fontWeight: 800,
-                            color: "#3C3489", whiteSpace: "nowrap",
+                            fontSize: "13px", fontWeight: 600,
+                            color: theme.text, whiteSpace: "nowrap",
                             overflow: "hidden", textOverflow: "ellipsis",
                           }}>
                             {tx.description}
                           </div>
                           {/* paidBy: "me" | "partner" | "together" */}
-                          <div style={{ fontSize: "11px", fontWeight: 800, color: "#6b65a8", marginTop: "2px" }}>
-                            {tx.paidBy === "me" ? `${myEmoji} 나` : tx.paidBy === "partner" ? `${partnerEmoji} 짝꿍` : "💕 같이"}
+                          <div style={{ fontSize: "11px", fontWeight: 500, color: theme.textMuted, marginTop: "2px" }}>
+                            {tx.paidBy === "me" ? "나" : tx.paidBy === "partner" ? "짝꿍" : "같이"}
                           </div>
                         </div>
 
-                        {/* 금액 (지출: 빨강/핑크, 수입: 초록) */}
+                        {/* 금액 (지출: 빨강, 수입: 초록) */}
                         <div style={{
-                          fontSize: "13px", fontWeight: 900,
-                          color: tx.type === "expense" ? "#d4537e" : "#3B8C3B",
-                          whiteSpace: "nowrap",
+                          fontSize: "13px", fontWeight: 700,
+                          color: tx.type === "expense" ? theme.danger : theme.success,
+                          whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums",
                         }}>
                           {tx.type === "expense" ? "-" : "+"}{tx.amount.toLocaleString()}원
                         </div>
@@ -531,7 +436,7 @@ const HomePage = () => {
                         {/* 수정 버튼 → /edit/:id 페이지로 이동 */}
                         <button
                           onClick={() => navigate(`/edit/${tx.id}`)}
-                          style={{ fontSize: "13px", fontWeight: 800, color: "#6b65a8", background: "none", border: "none", cursor: "pointer" }}
+                          style={{ fontSize: "12px", fontWeight: 600, color: theme.textMuted, background: "none", border: "none", cursor: "pointer" }}
                         >
                           수정
                         </button>
@@ -550,24 +455,22 @@ const HomePage = () => {
           화면 우하단 고정, BottomNav 위에 위치
       ─────────────────────────────────────── */}
       <button
-        className="fab-btn"
         onClick={() => navigate("/add")}
         style={{
           position: "fixed",
           bottom: "88px", right: "calc(50% - 184px)",
-          width: "52px", height: "52px",
-          borderRadius: "50%",
-          background: "linear-gradient(135deg, #9B8EC4, #B8AEDE)",
+          width: "48px", height: "48px",
+          borderRadius: theme.radiusMd,
+          background: theme.accent,
           border: "none",
           color: "white",
           cursor: "pointer",
-          boxShadow: "0 4px 20px #9B8EC460",
+          boxShadow: "0 4px 12px rgba(79, 70, 229, 0.35)",
           display: "flex", alignItems: "center", justifyContent: "center",
-          transition: "transform 0.15s ease, box-shadow 0.15s ease",
           zIndex: 10,
         }}
       >
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.8" strokeLinecap="round">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
           <line x1="12" y1="5" x2="12" y2="19" />
           <line x1="5" y1="12" x2="19" y2="12" />
         </svg>
@@ -583,11 +486,11 @@ const HomePage = () => {
       {showCoupleModal && (
         <div style={{ position: "fixed", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 40 }}>
           {/* 백드롭 클릭 시 모달 닫기 */}
-          <div onClick={() => setShowCoupleModal(false)} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.35)" }} />
-          <div style={{ background: "white", width: "92%", maxWidth: "420px", borderRadius: "12px", padding: "18px", zIndex: 41 }}>
+          <div onClick={() => setShowCoupleModal(false)} style={{ position: "absolute", inset: 0, background: "rgba(15, 23, 42, 0.4)" }} />
+          <div style={{ background: theme.surface, width: "92%", maxWidth: "420px", borderRadius: theme.radiusMd, border: `1px solid ${theme.border}`, padding: "18px", zIndex: 41 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <div style={{ fontWeight: 800 }}>커플 연결</div>
-              <button onClick={() => setShowCoupleModal(false)} style={{ all: "unset", cursor: "pointer" }}>✕</button>
+              <div style={{ fontWeight: 700, color: theme.text }}>커플 연결</div>
+              <button onClick={() => setShowCoupleModal(false)} style={{ all: "unset", cursor: "pointer", color: theme.textMuted }}>✕</button>
             </div>
 
             {/* 초대 코드 생성 / 초기화 버튼 */}
@@ -608,13 +511,13 @@ const HomePage = () => {
                     setIsCreating(false);
                   }
                 }}
-                style={{ flex: 1, padding: "10px", borderRadius: 10, background: "#f5f0ff", border: "none", cursor: "pointer", fontWeight: 800 }}
+                style={{ flex: 1, padding: "10px", borderRadius: theme.radiusSm, background: theme.surfaceMuted, border: `1px solid ${theme.border}`, cursor: "pointer", fontWeight: 600, color: theme.text }}
               >
                 {isCreating ? "생성중..." : "초대 코드 생성"}
               </button>
               <button
                 onClick={() => setInviteCode("")}
-                style={{ padding: "10px", borderRadius: 10, background: "#fff0f6", border: "none", cursor: "pointer", fontWeight: 800 }}
+                style={{ padding: "10px", borderRadius: theme.radiusSm, background: theme.surfaceMuted, border: `1px solid ${theme.border}`, cursor: "pointer", fontWeight: 600, color: theme.textMuted }}
               >
                 초기화
               </button>
@@ -623,15 +526,15 @@ const HomePage = () => {
             {/* 생성된 초대 코드 표시 + 클립보드 복사 */}
             {inviteCode ? (
               <div style={{ marginBottom: 12 }}>
-                <div style={{ fontSize: 12, color: "#7a5a3f", marginBottom: 6 }}>초대 코드</div>
+                <div style={{ fontSize: 12, color: theme.textMuted, marginBottom: 6 }}>초대 코드</div>
                 <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                  <div style={{ flex: 1, padding: "10px", borderRadius: 8, background: "#f7f7fb", fontWeight: 900 }}>{inviteCode}</div>
+                  <div style={{ flex: 1, padding: "10px", borderRadius: theme.radiusSm, background: theme.surfaceMuted, fontWeight: 700, color: theme.text, border: `1px solid ${theme.border}` }}>{inviteCode}</div>
                   <button
                     onClick={() => {
                       navigator.clipboard?.writeText(inviteCode);
                       alert("코드가 복사되었습니다.");
                     }}
-                    style={{ padding: "8px 10px", borderRadius: 8, background: "#9B8EC4", color: "white", border: "none", cursor: "pointer" }}
+                    style={{ padding: "8px 10px", borderRadius: theme.radiusSm, background: theme.accent, color: "white", border: "none", cursor: "pointer" }}
                   >복사</button>
                 </div>
               </div>
@@ -639,13 +542,13 @@ const HomePage = () => {
 
             {/* 파트너 초대 코드 입력 → 커플에 참여 */}
             <div style={{ marginTop: 6 }}>
-              <div style={{ fontSize: 12, color: "#7a5a3f", marginBottom: 6 }}>코드로 참여</div>
+              <div style={{ fontSize: 12, color: theme.textMuted, marginBottom: 6 }}>코드로 참여</div>
               <div style={{ display: "flex", gap: 8 }}>
                 <input
                   value={inputCode}
                   onChange={(e) => setInputCode(e.target.value.toUpperCase())} // 자동 대문자 변환
                   placeholder="초대 코드 입력"
-                  style={{ flex: 1, padding: "10px", borderRadius: 8, border: "1px solid #eee" }}
+                  style={{ flex: 1, padding: "10px", borderRadius: theme.radiusSm, border: `1px solid ${theme.border}` }}
                 />
                 <button
                   onClick={async () => {
@@ -663,7 +566,7 @@ const HomePage = () => {
                       alert(e.message || String(e));
                     }
                   }}
-                  style={{ padding: "10px", borderRadius: 8, background: "#6B5CE7", color: "white", border: "none", cursor: "pointer", fontWeight: 800 }}
+                  style={{ padding: "10px", borderRadius: theme.radiusSm, background: theme.accent, color: "white", border: "none", cursor: "pointer", fontWeight: 600 }}
                 >참여</button>
               </div>
             </div>

@@ -51,11 +51,13 @@ service cloud.firestore {
       allow read: if isSignedIn() && (
         request.auth.uid == resource.data.createdBy
         || (
-          // 동일한 couple의 멤버는 읽을 수 있음
-          exists(/databases/$(database)/documents/users/$(request.auth.uid))
-          && exists(/databases/$(database)/documents/users/$(resource.data.createdBy))
-          && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.coupleId == get(/databases/$(database)/documents/users/$(resource.data.createdBy)).data.coupleId
-          && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.coupleId != null
+          // 내 현재 coupleId가 거래 문서에 저장된 coupleId와 같으면 읽기 허용
+          // (작성자의 "현재" coupleId와 비교하면 커플 재구성 이력이 있을 때
+          //  과거 거래 문서와 어긋나 list 쿼리 전체가 거부될 수 있어, 문서 자체의
+          //  coupleId와 비교한다)
+          resource.data.coupleId != null
+          && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+          && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.coupleId == resource.data.coupleId
         )
       );
       allow update, delete: if isSignedIn() && request.auth.uid == resource.data.createdBy;
