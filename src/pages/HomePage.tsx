@@ -57,6 +57,7 @@ const HomePage = () => {
   const [loading, setLoading] = useState(true);                // Firebase 인증 응답 대기 중 여부
                                                                // (true일 때 로딩 화면 표시 → flash 방지)
   const [month, setMonth] = useState<Date>(new Date());
+  const [monthlyBudget, setMonthlyBudget] = useState<number | null>(null); // 내가 설정한 월 예산 (없으면 null)
 
   // ── Refs ───────────────────────────────────
   // 커플 문서 실시간 리스너의 해제 함수를 저장
@@ -185,6 +186,8 @@ const HomePage = () => {
         // ── 로그인된 상태 ──
         setUserName(user.displayName || "");
         await loadTransactions(user.uid, formatMonthKey(month));
+        const settingsSnap = await getDoc(doc(db, "userSettings", user.uid));
+        setMonthlyBudget(settingsSnap.exists() ? (settingsSnap.data().monthlyBudget ?? null) : null);
 
       } else {
         // ── 비로그인 상태 → 로그인 페이지로 이동 ──
@@ -351,6 +354,32 @@ const HomePage = () => {
             ))}
           </div>
         </div>
+
+        {/* ── 예산 사용률 ─────────────────────────
+            내가 설정한 월 예산 대비 이 달 총지출(나+파트너 합산) 진행률
+            예산 미설정 시 표시 안 함
+        ─────────────────────────────────────── */}
+        {monthlyBudget != null && monthlyBudget > 0 && (() => {
+          const pct = Math.round((totalExpense / monthlyBudget) * 100);
+          const barColor = pct >= 100 ? theme.danger : pct >= 80 ? "#d97706" : theme.accent;
+          return (
+            <div style={{
+              marginBottom: "16px",
+              background: theme.surface,
+              borderRadius: theme.radiusMd,
+              border: `1px solid ${theme.border}`,
+              padding: "12px 14px",
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
+                <span style={{ fontSize: "11px", fontWeight: 600, color: theme.textMuted }}>이번 달 예산 사용률</span>
+                <span style={{ fontSize: "11px", fontWeight: 700, color: barColor }}>{pct}%</span>
+              </div>
+              <div style={{ height: "6px", borderRadius: "3px", background: theme.surfaceMuted, overflow: "hidden" }}>
+                <div style={{ width: `${Math.min(100, pct)}%`, height: "100%", background: barColor }} />
+              </div>
+            </div>
+          );
+        })()}
 
         {grouped.length === 0 ? (
           /* 내역 없음 상태 */

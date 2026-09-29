@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
+import { collection, query, where, orderBy, limit, getDocs, getDoc, setDoc, doc } from "firebase/firestore";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import BottomNav from "../components/BottomNav";
 import MonthNavigator from "../components/MonthNavigator";
@@ -37,10 +37,9 @@ const renderCustomLabel = (props: any, data: CategoryStats[]) => {
       fill={theme.textMuted}
       textAnchor={x > cx ? "start" : "end"}
       dominantBaseline="central"
-      fontSize="11"
-      fontWeight="600"
+      style={{ fontSize: "12px", fontWeight: 500 }}
     >
-      {`${stat.category} ${stat.percentage}%`}
+      {`${stat.category.split(" ")[0]} ${stat.percentage}%`}
     </text>
   );
 };
@@ -54,6 +53,11 @@ const ChartPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [month, setMonth] = useState<Date>(new Date());
+  const [monthlyBudget, setMonthlyBudget] = useState<number | null>(null);
+  const [categoryBudgets, setCategoryBudgets] = useState<Record<string, number>>({});
+  const [showBudgetForm, setShowBudgetForm] = useState(false);
+  const [budgetInput, setBudgetInput] = useState("");
+  const [categoryBudgetInputs, setCategoryBudgetInputs] = useState<Record<string, string>>({});
 
   const formatMonthKey = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 
@@ -133,16 +137,51 @@ const ChartPage = () => {
     }
   };
 
+  const loadBudget = async (userId: string) => {
+    const snap = await getDoc(doc(db, "userSettings", userId));
+    if (snap.exists()) {
+      const data = snap.data();
+      setMonthlyBudget(data.monthlyBudget ?? null);
+      setCategoryBudgets(data.categoryBudgets ?? {});
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        await loadChartData(user.uid, formatMonthKey(month));
+        await Promise.all([loadChartData(user.uid, formatMonthKey(month)), loadBudget(user.uid)]);
       } else {
         navigate("/");
       }
     });
     return () => unsubscribe();
   }, [navigate, month]);
+
+  const openBudgetForm = () => {
+    setBudgetInput(monthlyBudget != null ? String(monthlyBudget) : "");
+    const inputs: Record<string, string> = {};
+    expenseStats.forEach((s) => {
+      inputs[s.category] = categoryBudgets[s.category] != null ? String(categoryBudgets[s.category]) : "";
+    });
+    setCategoryBudgetInputs(inputs);
+    setShowBudgetForm(true);
+  };
+
+  const saveBudget = async () => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    const overall = budgetInput.trim() ? Number(budgetInput) : null;
+    const perCategory: Record<string, number> = {};
+    for (const [cat, val] of Object.entries(categoryBudgetInputs)) {
+      if (val.trim()) perCategory[cat] = Number(val);
+    }
+    await setDoc(doc(db, "userSettings", uid), { monthlyBudget: overall, categoryBudgets: perCategory }, { merge: true });
+    setMonthlyBudget(overall);
+    setCategoryBudgets(perCategory);
+    setShowBudgetForm(false);
+  };
+
+  const budgetBarColor = (pct: number) => (pct >= 100 ? theme.danger : pct >= 80 ? "#d97706" : theme.accent);
 
   if (loading) {
     return <div className="flex justify-center items-center h-screen">로딩 중...</div>;
@@ -213,11 +252,75 @@ const ChartPage = () => {
           </div>
         </div>
 
+        {/* 예산 */}
+        <div style={{ background: theme.surface, borderRadius: theme.radiusMd, border: `1px solid ${theme.border}`, padding: "16px", marginBottom: "20px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: monthlyBudget || showBudgetForm ? "12px" : 0 }}>
+            <h2 style={{ fontSize: "15px", fontWeight: 700, color: theme.text }}>예산</h2>
+            <button
+              onClick={() => (showBudgetForm ? setShowBudgetForm(false) : openBudgetForm())}
+              style={{
+                fontSize: "11px", fontWeight: 600, color: theme.accent,
+                background: theme.accentMuted, border: "none",
+                borderRadius: theme.radiusSm, padding: "5px 10px", cursor: "pointer",
+              }}
+            >
+              예산 설정
+            </button>
+          </div>
+
+          {!showBudgetForm && monthlyBudget != null && monthlyBudget > 0 && (() => {
+            const pct = Math.round((totalExpense / monthlyBudget) * 100);
+            return (
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
+                  <span style={{ fontSize: "11px", fontWeight: 600, color: theme.textMuted }}>이번 달 예산 사용률</span>
+                  <span style={{ fontSize: "11px", fontWeight: 700, color: budgetBarColor(pct) }}>{pct}%</span>
+                </div>
+                <div style={{ height: "6px", borderRadius: "3px", background: theme.surfaceMuted, overflow: "hidden" }}>
+                  <div style={{ width: `${Math.min(100, pct)}%`, height: "100%", background: budgetBarColor(pct) }} />
+                </div>
+              </div>
+            );
+          })()}
+
+          {showBudgetForm && (
+            <div style={{ background: theme.surfaceMuted, borderRadius: theme.radiusMd, padding: "12px", display: "flex", flexDirection: "column", gap: "10px" }}>
+              <div>
+                <label style={{ fontSize: "11px", fontWeight: 600, color: theme.textMuted, display: "block", marginBottom: "4px" }}>전체 월 예산</label>
+                <input
+                  type="number"
+                  placeholder="예: 1500000"
+                  value={budgetInput}
+                  onChange={(e) => setBudgetInput(e.target.value)}
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: theme.radiusSm, border: `1px solid ${theme.border}`, fontSize: "13px", boxSizing: "border-box" }}
+                />
+              </div>
+              {expenseStats.map((s) => (
+                <div key={s.category}>
+                  <label style={{ fontSize: "11px", fontWeight: 600, color: theme.textMuted, display: "block", marginBottom: "4px" }}>{s.category} 한도</label>
+                  <input
+                    type="number"
+                    placeholder="미설정"
+                    value={categoryBudgetInputs[s.category] ?? ""}
+                    onChange={(e) => setCategoryBudgetInputs((prev) => ({ ...prev, [s.category]: e.target.value }))}
+                    style={{ width: "100%", padding: "8px 10px", borderRadius: theme.radiusSm, border: `1px solid ${theme.border}`, fontSize: "13px", boxSizing: "border-box" }}
+                  />
+                </div>
+              ))}
+              <div style={{ display: "flex", gap: "8px", marginTop: "2px" }}>
+                <button onClick={saveBudget} style={{ flex: 1, padding: "9px", borderRadius: theme.radiusSm, background: theme.accent, color: "white", fontSize: "12px", fontWeight: 600, border: "none", cursor: "pointer" }}>저장</button>
+                <button onClick={() => setShowBudgetForm(false)} style={{ padding: "9px 14px", borderRadius: theme.radiusSm, background: theme.surface, color: theme.textMuted, fontSize: "12px", fontWeight: 600, border: `1px solid ${theme.border}`, cursor: "pointer" }}>취소</button>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* 지출 차트 */}
         <div style={{ background: theme.surface, borderRadius: theme.radiusMd, padding: "16px", marginBottom: "20px", border: `1px solid ${theme.border}` }}>
           <h2 style={{ fontSize: "15px", fontWeight: 700, marginBottom: "16px", color: theme.text }}>
             지출 분석
           </h2>
+
           {expenseStats.length > 0 ? (
             <>
               <div style={{ width: "100%", overflow: "hidden" }}>
@@ -239,20 +342,38 @@ const ChartPage = () => {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value) => `₩${(value as number).toLocaleString()}`} />
+                    <Tooltip
+                      formatter={(value) => `₩${(value as number).toLocaleString()}`}
+                      contentStyle={{ fontSize: "11px", padding: "6px 10px", borderRadius: theme.radiusSm }}
+                      itemStyle={{ fontSize: "11px", padding: 0 }}
+                      labelStyle={{ display: "none" }}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
               <div style={{ marginTop: "16px" }}>
-                {expenseStats.map((stat, index) => (
-                  <div key={stat.category} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${theme.border}` }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      <div style={{ width: "10px", height: "10px", borderRadius: "2px", backgroundColor: COLORS[index % COLORS.length] }}></div>
-                      <span style={{ fontSize: "13px", color: theme.textMuted }}>{stat.category}</span>
+                {expenseStats.map((stat, index) => {
+                  const limit = categoryBudgets[stat.category];
+                  const pct = limit ? Math.round((stat.amount / limit) * 100) : null;
+                  return (
+                    <div key={stat.category} style={{ padding: "8px 0", borderBottom: `1px solid ${theme.border}` }}>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <div style={{ width: "10px", height: "10px", borderRadius: "2px", backgroundColor: COLORS[index % COLORS.length] }}></div>
+                          <span style={{ fontSize: "13px", color: theme.textMuted }}>{stat.category}</span>
+                        </div>
+                        <span style={{ fontSize: "13px", fontWeight: 700, color: theme.text, fontVariantNumeric: "tabular-nums" }}>
+                          ₩{stat.amount.toLocaleString()}{limit ? ` / ₩${limit.toLocaleString()}` : ""}
+                        </span>
+                      </div>
+                      {pct !== null && (
+                        <div style={{ height: "4px", borderRadius: "2px", background: theme.surfaceMuted, overflow: "hidden", marginTop: "6px" }}>
+                          <div style={{ width: `${Math.min(100, pct)}%`, height: "100%", background: budgetBarColor(pct) }} />
+                        </div>
+                      )}
                     </div>
-                    <span style={{ fontSize: "13px", fontWeight: 700, color: theme.text, fontVariantNumeric: "tabular-nums" }}>₩{stat.amount.toLocaleString()}</span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </>
           ) : (
@@ -286,7 +407,12 @@ const ChartPage = () => {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value) => `₩${(value as number).toLocaleString()}`} />
+                    <Tooltip
+                      formatter={(value) => `₩${(value as number).toLocaleString()}`}
+                      contentStyle={{ fontSize: "11px", padding: "6px 10px", borderRadius: theme.radiusSm }}
+                      itemStyle={{ fontSize: "11px", padding: 0 }}
+                      labelStyle={{ display: "none" }}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
