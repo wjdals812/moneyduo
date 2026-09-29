@@ -14,6 +14,7 @@ export interface Transaction {
   date: string;
   type: 'income' | 'expense';
   paidBy: 'me' | 'partner' | 'together';
+  paymentMethod?: string;
   createdBy: string;
   coupleId: string;
 }

@@ -234,7 +234,7 @@ const HomePage = () => {
       background: theme.bg,
       maxWidth: "400px",
       margin: "0 auto",
-      paddingBottom: "180px",
+      paddingBottom: "90px",
       position: "relative",
     }}>
 

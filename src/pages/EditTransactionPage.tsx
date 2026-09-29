@@ -14,6 +14,8 @@ const EditTransactionPage = () => {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("🍜 식비");
   const [paidBy, setPaidBy] = useState<"me" | "partner" | "together">("me");
+  const [paymentMethod, setPaymentMethod] = useState("카드");
+  const [paymentMethods, setPaymentMethods] = useState<string[]>(["현금", "카드"]);
   const [type, setType] = useState<"expense" | "income">("expense");
   const [date, setDate] = useState("");
   const [coupleId, setCoupleId] = useState<string | null>(null);
@@ -28,6 +30,9 @@ const EditTransactionPage = () => {
       const snapshot = await getDoc(ref);
       if (snapshot.exists() && snapshot.data().categories) {
         setCategories(snapshot.data().categories);
+      }
+      if (snapshot.exists() && snapshot.data().paymentMethods) {
+        setPaymentMethods(snapshot.data().paymentMethods);
       }
 
       // coupleId 불러오기
@@ -44,6 +49,7 @@ const EditTransactionPage = () => {
         setDescription(data.description);
         setCategory(data.category);
         setPaidBy(data.paidBy);
+        setPaymentMethod(data.paymentMethod ?? "카드");
         setType(data.type);
         setDate(data.date);
       }
@@ -63,6 +69,7 @@ const EditTransactionPage = () => {
         description,
         category,
         paidBy,
+        paymentMethod,
         type,
         date,
         coupleId: coupleId ?? null, // ✅ 기존 내역에도 coupleId 업데이트
@@ -181,6 +188,29 @@ const EditTransactionPage = () => {
                 background: paidBy === p ? theme.accentMuted : theme.surface,
                 color: paidBy === p ? theme.accent : theme.textMuted,
               }}>{p === "me" ? "나" : p === "together" ? "같이" : "짝꿍"}</button>
+            ))}
+          </div>
+        </div>
+
+        {/* 결제수단 */}
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+            <div style={{ fontSize: "11px", color: theme.textMuted, fontWeight: 600 }}>결제수단</div>
+            <button onClick={() => navigate("/paymentmethods")} style={{
+              fontSize: "11px", fontWeight: 600, color: theme.accent,
+              background: theme.accentMuted, border: `1px solid ${theme.border}`,
+              borderRadius: theme.radiusSm, padding: "4px 10px", cursor: "pointer",
+            }}>관리</button>
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+            {paymentMethods.map((m) => (
+              <button key={m} onClick={() => setPaymentMethod(m)} style={{
+                padding: "8px 12px", borderRadius: theme.radiusSm,
+                fontSize: "12px", fontWeight: 600, cursor: "pointer",
+                border: `1px solid ${paymentMethod === m ? theme.accent : theme.border}`,
+                background: paymentMethod === m ? theme.accentMuted : theme.surface,
+                color: paymentMethod === m ? theme.accent : theme.textMuted,
+              }}>{m}</button>
             ))}
           </div>
         </div>

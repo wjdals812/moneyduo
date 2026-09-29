@@ -194,7 +194,7 @@ const ChartPage = () => {
         background: theme.bg,
         maxWidth: "400px",
         margin: "0 auto",
-        paddingBottom: "180px",
+        paddingBottom: "90px",
       }}
     >
 
@@ -433,7 +433,6 @@ const ChartPage = () => {
           )}
         </div>
       </div>
-      <div style={{ height: "140px" }} />
       <BottomNav />
     </div>
   );

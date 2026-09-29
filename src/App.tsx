@@ -6,6 +6,7 @@ import ChartPage from "./pages/ChartPage";
 import AddTransactionPage from "./pages/AddTransactionPage";
 import EditTransactionPage from "./pages/EditTransactionPage";
 import CategoriesPage from "./pages/CategoriesPage";
+import PaymentMethodsPage from "./pages/PaymentMethodsPage";
 import MyPage from "./pages/MyPage";
 import SchedulePage from "./pages/SchedulePage";
 
@@ -21,6 +22,7 @@ const App = () => {
         <Route path="/add" element={<AddTransactionPage />} />
         <Route path="/edit/:id" element={<EditTransactionPage />} />
         <Route path="/categories" element={<CategoriesPage />} />
+        <Route path="/paymentmethods" element={<PaymentMethodsPage />} />
         <Route path="/mypage" element={<MyPage />} />
         <Route path="/calendar" element={<SchedulePage />} />
       </Routes>

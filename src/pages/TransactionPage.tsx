@@ -64,7 +64,7 @@ const TransactionPage = () => {
       background: theme.bg,
       maxWidth: "400px",
       margin: "0 auto",
-      paddingBottom: "180px",
+      paddingBottom: "90px",
     }}>
 
       {/* 헤더 */}
@@ -164,6 +164,7 @@ const TransactionPage = () => {
                           </div>
                           <div style={{ fontSize: "11px", fontWeight: 500, color: theme.textMuted, marginTop: "2px" }}>
                             {tx.paidBy === "me" ? "나" : tx.paidBy === "partner" ? "짝꿍" : "같이"} · {tx.category}
+                            {tx.paymentMethod && ` · ${tx.paymentMethod}`}
                           </div>
                         </div>
                         <div style={{

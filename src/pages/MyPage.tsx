@@ -212,6 +212,23 @@ const ProfilePage = () => {
           <span style={{ color: theme.textMuted }}>›</span>
         </button>
 
+        {/* 결제수단 관리 */}
+        <button
+          onClick={() => navigate("/paymentmethods")}
+          style={{
+            width: "100%", padding: "14px",
+            borderRadius: theme.radiusMd,
+            background: theme.surface,
+            border: `1px solid ${theme.border}`,
+            color: theme.text, fontSize: "13px", fontWeight: 600,
+            cursor: "pointer", textAlign: "left",
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+          }}
+        >
+          <span>결제수단 관리</span>
+          <span style={{ color: theme.textMuted }}>›</span>
+        </button>
+
         {/* 로그아웃 */}
         <button
           onClick={handleLogout}

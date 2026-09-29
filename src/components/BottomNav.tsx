@@ -79,9 +79,9 @@ const MypageIcon = ({ active }: { active: boolean }) =>
   );
 
 const menus = [
-  { path: "/home", label: "홈", Icon: HomeIcon },
+  { path: "/home", label: "듀오", Icon: HomeIcon },
   // { path: "/transactions", label: "내역", Icon: TransactionsIcon },
-  { path: "/chart", label: "차트", Icon: ChartIcon },
+  { path: "/chart", label: "통계", Icon: ChartIcon },
   { path: "/calendar", label: "캘린더", Icon: CalendarIcon },
   { path: "/mypage", label: "내 정보", Icon: MypageIcon },
 ];
