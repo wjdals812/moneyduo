@@ -6,7 +6,7 @@ import {
   initializeTestEnvironment,
   type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing'
-import { deleteDoc, doc, getDoc, setDoc, updateDoc, writeBatch, arrayUnion } from 'firebase/firestore'
+import { deleteDoc, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore'
 
 // 시나리오: A·B는 같은 커플(couple1), C는 다른 커플(couple2), D는 가입 직후라 coupleId가 없음
 let env: RulesTestEnvironment
@@ -93,51 +93,45 @@ describe('users', () => {
   it('멤버가 아닌 커플로 coupleId를 바꿀 수 없다', async () => {
     await assertFails(updateDoc(doc(as('D'), 'users/D'), { coupleId: 'couple1' }))
   })
+
+  it('클라이언트가 coupleId를 직접 바꿀 수 없다 (서버 API만 가능)', async () => {
+    await assertFails(updateDoc(doc(as('A'), 'users/A'), { coupleId: null }))
+    await assertFails(updateDoc(doc(as('A'), 'users/A'), { coupleId: 'couple2' }))
+  })
+
+  it('coupleId 없이 다른 필드는 수정할 수 있다', async () => {
+    await assertSucceeds(updateDoc(doc(as('A'), 'users/A'), { displayName: 'A2' }))
+  })
+
+  it('가입 시 coupleId를 넣어 문서를 만들 수 없다', async () => {
+    await assertFails(setDoc(doc(as('X'), 'users/X'), { displayName: 'X', coupleId: 'couple1' }))
+    await assertSucceeds(setDoc(doc(as('X'), 'users/X'), { displayName: 'X' }))
+  })
 })
 
 describe('couples', () => {
-  it('초대 코드로 본인만 멤버에 추가하며 참여할 수 있다', async () => {
-    const db = as('D')
-    const batch = writeBatch(db)
-    batch.update(doc(db, 'couples/couple2'), { members: arrayUnion('D') })
-    batch.update(doc(db, 'users/D'), { coupleId: 'couple2' })
-    await assertSucceeds(batch.commit())
+  it('멤버는 커플 문서를 읽을 수 있다', async () => {
+    await assertSucceeds(getDoc(doc(as('A'), 'couples/couple1')))
   })
 
-  it('다른 사람을 대신 멤버로 추가할 수 없다', async () => {
-    await assertFails(updateDoc(doc(as('D'), 'couples/couple2'), { members: ['C', 'X'] }))
-  })
-
-  it('한 번에 멤버를 두 명 이상 추가할 수 없다', async () => {
-    await assertFails(updateDoc(doc(as('D'), 'couples/couple2'), { members: ['C', 'D', 'X'] }))
-  })
-
-  it('다른 사람을 강제로 탈퇴시킬 수 없다', async () => {
-    await assertFails(updateDoc(doc(as('C'), 'couples/couple1'), { members: ['A'] }))
-  })
-
-  it('멤버 본인은 탈퇴할 수 있다', async () => {
-    await assertSucceeds(updateDoc(doc(as('B'), 'couples/couple1'), { members: ['A'] }))
-  })
-
-  it('초대 코드(inviteCode)는 바꿀 수 없다', async () => {
+  it('클라이언트는 커플을 만들거나 수정·삭제할 수 없다 (서버 API만 가능)', async () => {
+    await assertFails(setDoc(doc(as('D'), 'couples/new'), { members: ['D'], inviteCode: 'DDDDDD' }))
+    await assertFails(updateDoc(doc(as('D'), 'couples/couple2'), { members: ['C', 'D'] })) // 참여
+    await assertFails(updateDoc(doc(as('B'), 'couples/couple1'), { members: ['A'] })) // 탈퇴
     await assertFails(updateDoc(doc(as('A'), 'couples/couple1'), { inviteCode: 'ZZZZZZ' }))
-  })
-
-  it('2명이 있는 커플은 삭제할 수 없다', async () => {
-    await assertFails(deleteDoc(doc(as('A'), 'couples/couple1')))
+    await assertFails(deleteDoc(doc(as('C'), 'couples/couple2')))
   })
 })
 
 describe('inviteCodes', () => {
-  it('코드로 단건 조회와 생성은 가능하다', async () => {
-    await assertSucceeds(setDoc(doc(as('A'), 'inviteCodes/NEW123'), { coupleId: 'couple1' }))
+  it('코드로 단건 조회는 가능하다', async () => {
+    await env.withSecurityRulesDisabled((ctx) => setDoc(doc(ctx.firestore(), 'inviteCodes/NEW123'), { coupleId: 'couple1' }))
     await assertSucceeds(getDoc(doc(as('D'), 'inviteCodes/NEW123')))
   })
 
-  it('기존 코드를 덮어쓰거나 삭제할 수 없다', async () => {
-    await assertSucceeds(setDoc(doc(as('A'), 'inviteCodes/AAAAAA'), { coupleId: 'couple1' }))
-    await assertFails(updateDoc(doc(as('C'), 'inviteCodes/AAAAAA'), { coupleId: 'couple2' }))
+  it('클라이언트는 코드를 만들거나 수정·삭제할 수 없다 (서버 API만 가능)', async () => {
+    await assertFails(setDoc(doc(as('A'), 'inviteCodes/NEW123'), { coupleId: 'couple1' }))
+    await assertFails(setDoc(doc(as('A'), 'inviteCodes/AAAAAA'), { coupleId: 'couple1' }))
     await assertFails(deleteDoc(doc(as('A'), 'inviteCodes/AAAAAA')))
   })
 })

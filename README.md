@@ -103,9 +103,9 @@ flowchart LR
 
 - 거래 수정/삭제는 작성자만 가능, 읽기는 같은 커플만 가능
 - `users.coupleId`는 해당 커플의 멤버일 때만 변경 가능 (임의로 남의 커플에 들어갈 수 없음)
-- 커플 가입/탈퇴는 "멤버 1명 추가/제거"만 허용하도록 규칙으로 제한
+- 커플 생성·참여·해제는 서버 API(Admin SDK)만 수행하고, 규칙은 클라이언트의 `couples` 쓰기와 `users.coupleId` 변경을 모두 거부
 
-**규칙 자동 검증:** Firebase 에뮬레이터 + Vitest로 24개 시나리오를 검증합니다 ([tests/firestore.rules.test.ts](tests/firestore.rules.test.ts)). 다른 커플의 거래 열람, 작성자 위조, 남의 커플로 임의 가입, `coupleId` 필드가 없는 신규 가입자 같은 케이스가 포함되며, 규칙을 일부러 느슨하게 바꾸면 해당 테스트가 실패하는 것까지 확인했습니다.
+**규칙 자동 검증:** Firebase 에뮬레이터 + Vitest로 규칙 22개 시나리오를 검증합니다 ([tests/firestore.rules.test.ts](tests/firestore.rules.test.ts)). 다른 커플의 거래 열람, 작성자 위조, 남의 커플로 임의 가입, `coupleId` 필드가 없는 신규 가입자 같은 케이스가 포함되며, 규칙을 일부러 느슨하게 바꾸면 해당 테스트가 실패하는 것까지 확인했습니다.
 
 ## 📁 폴더 구조
 
