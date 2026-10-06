@@ -53,15 +53,16 @@
 | 컬렉션         | 문서 ID  | 주요 필드                                                  | 읽기 / 쓰기                         |
 | -------------- | -------- | ---------------------------------------------------------- | ----------------------------------- |
 | `users`        | uid      | displayName, photoURL, `coupleId`                          | 본인 / 같은 커플 읽기, 본인만 쓰기  |
-| `couples`      | 자동     | `members`(uid 배열), `inviteCode`                          | 멤버만 읽기, 가입·탈퇴는 규칙으로 제한 |
+| `couples`      | 자동     | `members`(uid 배열), `inviteCode`                          | 단건 조회는 로그인 사용자, 목록은 멤버만. 가입·탈퇴는 규칙으로 제한 |
+| `inviteCodes`  | 6자리 코드 | `coupleId`                                               | 코드로 단건 조회·생성만 (목록/덮어쓰기/삭제 불가) |
 | `transactions` | 자동     | amount, category, type, paidBy, date, `createdBy`, `coupleId` | 같은 커플 읽기, 작성자만 수정·삭제 |
 | `userSettings` | uid      | 카테고리, 결제수단, 예산                                   | 본인만                              |
 | `schedules`    | 자동     | 일정/기념일, `createdBy`                                   | 본인만                              |
 
 **커플 연결 흐름**
 
-1. A가 커플 생성 → `couples` 문서와 6자리 `inviteCode` 발급, A의 `users.coupleId` 설정
-2. B가 코드 입력 → 코드로 `couples` 조회 후 `members`에 본인 추가, B의 `users.coupleId` 설정
+1. A가 커플 생성 → `inviteCodes/{코드}`(→ coupleId) 발급 후 `couples` 문서 생성, A의 `users.coupleId` 설정
+2. B가 코드 입력 → `inviteCodes/{코드}`로 coupleId를 찾아 `members`에 본인 추가, B의 `users.coupleId` 설정
 3. 이후 거래는 `coupleId`와 함께 저장되고, 같은 `coupleId`를 가진 두 사람이 서로 읽을 수 있음
 
 ## 🔐 보안 설계 (Firestore Rules)

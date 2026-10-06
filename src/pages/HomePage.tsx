@@ -492,7 +492,7 @@ const HomePage = () => {
             <button onClick={() => setShowCoupleModal(false)} style={{ all: "unset", cursor: "pointer", color: theme.textFaint, position: "absolute", top: 14, right: 16, fontSize: 16 }}>✕</button>
 
             <div style={{ textAlign: "center", marginBottom: 18 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: theme.text }}>짝꿍과 연결하기</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: theme.text }}>커플 연결하기</div>
               <div style={{ fontSize: 12, color: theme.textMuted, marginTop: 4 }}>초대 코드로 가계부를 함께 써요</div>
             </div>
 
