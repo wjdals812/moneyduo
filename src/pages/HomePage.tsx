@@ -57,7 +57,7 @@ const HomePage = () => {
   const [totalIncome, setTotalIncome] = useState(0);           // 총 수입 합계
   const [loading, setLoading] = useState(true);                // Firebase 인증 응답 대기 중 여부
                                                                // (true일 때 로딩 화면 표시 → flash 방지)
-  const [uid, setUid] = useState<string | null>(null);
+  const [uid, setUid] = useState<string | null>(auth.currentUser?.uid ?? null); // 이미 로그인된 상태면 인증 콜백을 기다리지 않고 바로 조회
   const [month, setMonth] = useState<Date>(new Date());
   const [monthlyBudget, setMonthlyBudget] = useState<number | null>(null); // 내가 설정한 월 예산 (없으면 null)
 

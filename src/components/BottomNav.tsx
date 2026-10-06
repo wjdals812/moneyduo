@@ -105,8 +105,8 @@ const BottomNav = () => {
           <div
             key={path}
             onClick={() => navigate(path)}
-            className="flex flex-col items-center gap-0.5 cursor-pointer"
-            style={{ color }}
+            className="flex flex-col items-center gap-0.5 cursor-pointer flex-1 py-1"
+            style={{ color, touchAction: "manipulation" }}
           >
             <Icon active={active} />
             <span className="text-[9px] font-semibold" style={{ color }}>

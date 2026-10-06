@@ -182,6 +182,7 @@ const ChartPage = () => {
       justifyContent: "center",
     }}>
       <div style={{ fontSize: "13px", fontWeight: 600, color: theme.textMuted }}>불러오는 중…</div>
+      <BottomNav />
     </div>
   );
 
@@ -335,6 +336,7 @@ const ChartPage = () => {
                       dataKey="amount"
                       nameKey="category"
                       rootTabIndex={-1}
+                      isAnimationActive={false}
                     >
                       {expenseStats.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -400,6 +402,7 @@ const ChartPage = () => {
                       dataKey="amount"
                       nameKey="category"
                       rootTabIndex={-1}
+                      isAnimationActive={false}
                     >
                       {incomeStats.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
