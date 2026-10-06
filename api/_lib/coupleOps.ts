@@ -40,12 +40,15 @@ export async function leave(db: Firestore, uid: string): Promise<void> {
 }
 
 export async function create(db: Firestore, uid: string, genCode: () => string = generateCode) {
-  await leave(db, uid)
   for (let i = 0; i < 6; i++) {
     const inviteCode = genCode()
     const coupleRef = db.collection('couples').doc()
     try {
+      // 기존 커플 정리와 새 커플 생성을 한 트랜잭션으로 묶어, 동시에 두 번 호출돼도 커플이 하나만 남게 한다
       await db.runTransaction(async (t) => {
+        const userRef = db.doc(`users/${uid}`)
+        const oldId = (await t.get(userRef)).data()?.coupleId
+        if (oldId) queueLeave(t, uid, await t.get(db.doc(`couples/${oldId}`)))
         t.create(db.doc(`inviteCodes/${inviteCode}`), { coupleId: coupleRef.id }) // 이미 있으면 실패
         t.set(coupleRef, { members: [uid], inviteCode, createdAt: FieldValue.serverTimestamp() })
         t.set(db.doc(`users/${uid}`), { coupleId: coupleRef.id }, { merge: true })
@@ -61,6 +64,7 @@ export async function create(db: Firestore, uid: string, genCode: () => string =
 export async function join(db: Firestore, uid: string, rawCode: unknown) {
   if (typeof rawCode !== 'string' || !rawCode.trim()) throw new ApiError(400, '코드를 입력하세요.')
   const code = rawCode.trim().toUpperCase()
+  if (!/^[A-Z0-9]{1,20}$/.test(code)) throw new ApiError(404, '유효하지 않은 코드입니다.') // 문서 경로로 쓸 수 없는 입력 차단
   return db.runTransaction(async (t) => {
     const userRef = db.doc(`users/${uid}`)
     const [invite, user] = await Promise.all([t.get(db.doc(`inviteCodes/${code}`)), t.get(userRef)])

@@ -47,6 +47,16 @@ describe('create', () => {
   })
 })
 
+describe('create 원자성', () => {
+  it('코드 생성이 끝내 실패하면 기존 커플에서 나가지 않은 채로 남는다', async () => {
+    await seedCouple('couple1', ['A', 'B'])
+    await db.doc('inviteCodes/AAAAAA').set({ coupleId: 'old' })
+    await expect(create(db, 'A', () => 'AAAAAA')).rejects.toMatchObject({ status: 500 })
+    expect((await data('couples/couple1'))?.members).toEqual(['A', 'B'])
+    expect((await data('users/A'))?.coupleId).toBe('couple1')
+  })
+})
+
 describe('join', () => {
   it('초대 코드로 멤버에 추가되고 내 coupleId가 설정된다', async () => {
     await seedCouple('couple1', ['A'], 'XXXXXX')
@@ -91,6 +101,12 @@ describe('join', () => {
     await join(db, 'B', 'XXXXXX')
     expect((await data('couples/old'))?.members).toEqual(['Z'])
     expect((await data('users/B'))?.coupleId).toBe('couple1')
+  })
+
+  it('경로로 쓸 수 없는 코드(슬래시, 점, 아주 긴 문자열)는 서버 오류가 아니라 404', async () => {
+    for (const bad of ['AB/CD', '..', 'A'.repeat(2000)]) {
+      await expect(join(db, 'B', bad)).rejects.toMatchObject({ status: 404 })
+    }
   })
 
   it('코드가 비었거나 문자열이 아니면 400', async () => {

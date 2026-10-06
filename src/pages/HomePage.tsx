@@ -551,10 +551,11 @@ const HomePage = () => {
                 ) : (
                   <button
                     onClick={async () => {
+                      if (isCreating) return; // 연타 방지
                       try {
                         setIsCreating(true);
                         if (!auth.currentUser) throw new Error("로그인 필요");
-                        // Firestore에 couple 문서 생성 + 초대 코드 반환
+                        // 서버 API로 커플 생성 + 초대 코드 반환
                         await leavingRef.current;
                         detachCoupleListener();
                         const res = await coupleService.createCouple(auth.currentUser.uid);
