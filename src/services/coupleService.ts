@@ -29,6 +29,8 @@ function generateCode(length = 6) {
 
 export async function createCouple(currentUid: string) {
   coupleIdCache.delete(currentUid);
+  // 이전에 만든 커플이 남아 있으면 정리 (users.coupleId는 null일 때만 새 값으로 바뀔 수 있음)
+  await leaveCouple(currentUid);
   const docRef = doc(collection(db, COUPLES_COL)); // ID만 먼저 확보
   // inviteCodes/{코드} 문서로 코드→coupleId를 조회한다 (couples 쿼리는 규칙상 멤버만 가능).
   // 규칙이 기존 문서 덮어쓰기를 막으므로 코드가 겹치면 실패 → 재시도

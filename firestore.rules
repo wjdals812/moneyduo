@@ -37,8 +37,10 @@ service cloud.firestore {
             || (
               request.resource.data.coupleId is string
               && resource.data.get('coupleId', null) == null
-              && exists(/databases/$(database)/documents/couples/$(request.resource.data.coupleId))
-              && get(/databases/$(database)/documents/couples/$(request.resource.data.coupleId)).data.members.hasAny([request.auth.uid])
+              // 참여 트랜잭션에서는 couples.members 추가와 이 쓰기가 한 번에 일어나므로
+              // 쓰기 이후 상태를 보는 existsAfter/getAfter를 써야 통과한다
+              && existsAfter(/databases/$(database)/documents/couples/$(request.resource.data.coupleId))
+              && getAfter(/databases/$(database)/documents/couples/$(request.resource.data.coupleId)).data.members.hasAny([request.auth.uid])
             )
           )
         );
