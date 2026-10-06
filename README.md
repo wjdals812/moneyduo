@@ -49,6 +49,7 @@
 | 프론트엔드 | React + TypeScript + Vite         | 타입 안정성, 빠른 개발 환경         |
 | 스타일     | Tailwind CSS                      | 모바일 중심 UI를 빠르게 구성        |
 | 인증/DB    | Firebase Auth, Firestore          | 서버 없이 실시간 동기화와 인증 해결 |
+| 서버       | Vercel 서버리스 함수 + Firebase Admin SDK | 커플 연결 로직과 권한 검증을 서버로 이전 |
 | 차트       | Recharts                          | React 컴포넌트로 선언적 구성        |
 | 배포       | Vercel (`main` push 시 자동 배포) | CI/CD 설정 불필요                   |
 
@@ -57,7 +58,9 @@
 ```mermaid
 flowchart LR
   A[React 앱<br/>Vercel 배포] -->|로그인/익명 데모| B[Firebase Auth]
-  A -->|읽기·쓰기| C[(Firestore)]
+  A -->|읽기| C[(Firestore)]
+  A -->|커플 생성·참여·해제| S[Vercel API<br/>토큰 검증 + 트랜잭션]
+  S -->|Admin SDK| C
   C --- D{Security Rules<br/>커플 멤버만 접근}
   A -->|초대 코드 조회| E[inviteCodes]
   E -->|coupleId| F[couples.members]
@@ -106,6 +109,9 @@ flowchart LR
 ## 📁 폴더 구조
 
 ```
+api/
+├─ couple/       커플 생성·참여·해제 API (create, join, leave)
+└─ _lib/         서버 공용 (coupleOps 로직, 토큰 검증 admin/handler)
 src/
 ├─ pages/        화면 (홈, 차트, 일정, 입력/수정, 마이페이지 …)
 ├─ components/   공통 컴포넌트 (하단 네비게이션, 월 이동)
@@ -124,6 +130,8 @@ npm test           # 보안 규칙·서버 로직 테스트 (Java 필요, 에뮬
 ```
 
 `src/firebase.ts`의 Firebase 설정이 필요합니다.
+
+`/api`는 `vite dev`에서 동작하지 않습니다. 커플 연결까지 로컬에서 확인하려면 `npx vercel dev`를 쓰고, 서버에는 환경변수 `FIREBASE_SERVICE_ACCOUNT`(서비스 계정 JSON 한 줄)가 필요합니다.
 
 ## ⚠️ 배포 시 주의사항: Firestore 규칙
 
