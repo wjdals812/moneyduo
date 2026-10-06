@@ -20,6 +20,9 @@ import {
 const COUPLES_COL = "couples";
 const USERS_COL = "users";
 
+// 내 coupleId 캐시 (화면 이동마다 users 문서를 다시 읽지 않기 위함). 생성/참여/탈퇴 시 무효화.
+const coupleIdCache = new Map<string, string>();
+
 function generateCode(length = 6) {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // avoid ambiguous chars
   let out = "";
@@ -39,6 +42,7 @@ async function ensureUniqueCode() {
 }
 
 export async function createCouple(currentUid: string) {
+  coupleIdCache.delete(currentUid);
   const inviteCode = await ensureUniqueCode();
   const docRef = await addDoc(collection(db, COUPLES_COL), {
     members: [currentUid],
@@ -50,6 +54,7 @@ export async function createCouple(currentUid: string) {
 }
 
 export async function joinByCode(currentUid: string, code: string) {
+  coupleIdCache.delete(currentUid);
   const q = query(collection(db, COUPLES_COL), where("inviteCode", "==", code));
   const snap = await getDocs(q);
   if (snap.empty) throw new Error("유효하지 않은 코드입니다.");
@@ -73,6 +78,7 @@ export async function joinByCode(currentUid: string, code: string) {
 }
 
 export async function leaveCouple(currentUid: string) {
+  coupleIdCache.delete(currentUid);
   const userRef = doc(db, USERS_COL, currentUid);
   const userSnap = await getDoc(userRef);
   if (!userSnap.exists()) return;
@@ -121,11 +127,14 @@ export async function getCoupleById(coupleId: string) {
 }
 
 export async function getMyCouple(currentUid: string) {
-  const userRef = doc(db, USERS_COL, currentUid);
-  const userSnap = await getDoc(userRef);
-  if (!userSnap.exists()) return null;
-  const coupleId = (userSnap.data() as any)?.coupleId;
-  if (!coupleId) return null;
+  let coupleId = coupleIdCache.get(currentUid);
+  if (!coupleId) {
+    const userSnap = await getDoc(doc(db, USERS_COL, currentUid));
+    coupleId = (userSnap.data() as any)?.coupleId;
+    if (!coupleId) return null;
+    coupleIdCache.set(currentUid, coupleId);
+  }
+  // 커플 문서는 파트너가 바꿀 수 있으므로 캐시하지 않고 매번 조회
   return getCoupleById(coupleId);
 }
 
