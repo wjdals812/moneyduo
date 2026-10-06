@@ -92,8 +92,11 @@ const BottomNav = () => {
 
   return (
     <div
-      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[400px] bg-white flex justify-around py-2 pb-4 z-30"
-      style={{ borderTop: `1px solid ${theme.border}` }}
+      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[400px] bg-white flex justify-around pt-2 z-30"
+      style={{
+        borderTop: `1px solid ${theme.border}`,
+        paddingBottom: "calc(env(safe-area-inset-bottom) + 12px)",
+      }}
     >
       {menus.map(({ path, label, Icon }) => {
         const active = location.pathname === path;
