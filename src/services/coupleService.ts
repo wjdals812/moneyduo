@@ -22,6 +22,12 @@ const coupleIdCache = new Map<string, string | null>(); // null = 커플 없음�
 const at = <T,>(label: string, p: Promise<T>) =>
   p.catch((e) => { throw new Error(`[${label}] ${e?.message ?? e}`); });
 
+// [perf] 임시 측정용: 각 서버 요청 소요 시간을 콘솔에 출력 (원인 파악 후 제거)
+const timed = async <T,>(label: string, p: Promise<T>) => {
+  const t0 = performance.now();
+  try { return await p; } finally { console.log(`[perf] ${label} ${Math.round(performance.now() - t0)}ms`); }
+};
+
 function generateCode(length = 6) {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // avoid ambiguous chars
   let out = "";
@@ -32,7 +38,7 @@ function generateCode(length = 6) {
 export async function createCouple(currentUid: string) {
   coupleIdCache.delete(currentUid);
   // 이전에 만든 커플이 남아 있을 때만 정리 (users.coupleId는 null일 때만 새 값으로 바뀔 수 있음)
-  const mySnap = await getDoc(doc(db, USERS_COL, currentUid));
+  const mySnap = await timed("생성: 내 문서 조회", getDoc(doc(db, USERS_COL, currentUid)));
   if ((mySnap.data() as any)?.coupleId) await leaveCouple(currentUid);
   const docRef = doc(collection(db, COUPLES_COL)); // ID만 먼저 확보
   // inviteCodes/{코드} 문서로 코드→coupleId를 조회한다 (couples 쿼리는 규칙상 멤버만 가능).
@@ -44,7 +50,7 @@ export async function createCouple(currentUid: string) {
     batch.set(docRef, { members: [currentUid], inviteCode, createdAt: serverTimestamp() });
     batch.set(doc(db, USERS_COL, currentUid), { coupleId: docRef.id }, { merge: true });
     try {
-      await batch.commit();
+      await timed("생성: 배치 커밋", batch.commit());
     } catch { continue; /* 코드 중복 */ }
     coupleIdCache.set(currentUid, docRef.id);
     return { coupleId: docRef.id, inviteCode };
@@ -55,17 +61,17 @@ export async function createCouple(currentUid: string) {
 export async function joinByCode(currentUid: string, code: string) {
   coupleIdCache.delete(currentUid);
   // 코드 조회와 내 문서 조회는 서로 무관하므로 동시에 (왕복 1회로)
-  const [inviteSnap, mySnap] = await at("코드 조회", Promise.all([
+  const [inviteSnap, mySnap] = await at("코드 조회", timed("참여: 코드+내문서 조회", Promise.all([
     getDoc(doc(db, INVITES_COL, code)),
     getDoc(doc(db, USERS_COL, currentUid)),
-  ]));
+  ])));
   if (!inviteSnap.exists()) throw new Error("유효하지 않은 코드입니다.");
 
   // 내가 만든 기존 커플이 있을 때만 정리 (대부분은 없어서 왕복을 건너뜀)
   if ((mySnap.data() as any)?.coupleId) await at("기존 커플 정리", leaveCouple(currentUid));
 
   const coupleRef = doc(db, COUPLES_COL, inviteSnap.data().coupleId);
-  const coupleSnap = await at("커플 조회", getDoc(coupleRef));
+  const coupleSnap = await at("커플 조회", timed("참여: 커플 조회", getDoc(coupleRef)));
   if (!coupleSnap.exists()) throw new Error("커플 정보를 찾을 수 없습니다.");
   // 멤버 추가 + 내 coupleId 설정을 한 번에 커밋 (왕복 1회, 중간 상태 없음)
   const batch = writeBatch(db);
@@ -73,7 +79,7 @@ export async function joinByCode(currentUid: string, code: string) {
     batch.update(coupleRef, { members: arrayUnion(currentUid) });
   }
   batch.set(doc(db, USERS_COL, currentUid), { coupleId: coupleRef.id }, { merge: true });
-  await at("참여 처리", batch.commit());
+  await at("참여 처리", timed("참여: 배치 커밋", batch.commit()));
   coupleIdCache.set(currentUid, coupleRef.id); // 이후 내역 조회가 내 문서를 다시 읽지 않도록
 
   return { coupleId: coupleRef.id };
@@ -89,7 +95,7 @@ export async function leaveCouple(currentUid: string, known?: { coupleId: string
     if (known.members.length === 1) batch.delete(coupleRef);
     else batch.update(coupleRef, { members: arrayRemove(currentUid) });
     batch.set(userRef, { coupleId: null }, { merge: true });
-    await batch.commit();
+    await timed("해제: 배치 커밋", batch.commit());
     coupleIdCache.set(currentUid, null);
     return;
   }

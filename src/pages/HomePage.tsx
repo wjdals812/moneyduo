@@ -275,11 +275,12 @@ const HomePage = () => {
                       coupleUnsubRef.current();
                       coupleUnsubRef.current = null;
                     }
+                    const t0 = performance.now(); // [perf] 임시 측정
                     leavingRef.current = (async () => {
                       try {
                         await coupleService.leaveCouple(myUid, known);
                         loadTransactions(myUid, formatMonthKey(month)); // 알럿(화면 멈춤) 전에 내역 재조회 시작
-                        alert("연결 해제되었습니다.");
+                        alert(`연결 해제되었습니다. (${Math.round(performance.now() - t0)}ms)`);
                       } catch (e: any) {
                         loadTransactions(myUid, formatMonthKey(month));
                         alert(e.message || String(e));
@@ -596,6 +597,7 @@ const HomePage = () => {
                       const code = inputCode.trim().toUpperCase();
                       if (!code) return alert("코드를 입력하세요.");
                       setIsJoining(true);
+                      const t0 = performance.now(); // [perf] 임시 측정
                       // 코드로 커플 문서 찾아서 members에 내 uid 추가
                       await leavingRef.current; // 진행 중인 해제가 끝난 뒤에 참여
                       detachCoupleListener(); // 기존 커플 정리 과정의 변화에 알림이 뜨지 않도록
@@ -603,7 +605,7 @@ const HomePage = () => {
                       // 참여 후 리스너 붙이기
                       attachCoupleListener(result.coupleId, auth.currentUser!.uid);
                       loadTransactions(auth.currentUser!.uid, formatMonthKey(month)); // 파트너 내역 바로 반영
-                      alert("참여되었습니다.");
+                      alert(`참여되었습니다. (${Math.round(performance.now() - t0)}ms)`);
                       setShowCoupleModal(false);
                     } catch (e: any) {
                       alert(e.message || String(e));
