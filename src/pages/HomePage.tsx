@@ -50,6 +50,7 @@ const HomePage = () => {
   const [coupleTab, setCoupleTab] = useState<"create" | "join">("create"); // 모달 탭
   const [inviteCode, setInviteCode] = useState("");          // 내가 생성한 초대 코드
   const [inputCode, setInputCode] = useState("");              // 파트너 초대 코드 입력값
+  const [isJoining, setIsJoining] = useState(false);            // 참여 처리 중 (연타 방지)
   const [isCreating, setIsCreating] = useState(false);         // 초대 코드 생성 중 로딩 상태
   const [, setCoupleInfo] = useState<any>(null);               // 커플 문서 데이터 (파트너 감지용)
   const [partnerName, setPartnerName] = useState("");          // 파트너 이름 (헤더에 표시)
@@ -583,10 +584,12 @@ const HomePage = () => {
                 />
                 <button
                   onClick={async () => {
+                    if (isJoining) return; // 연타하면 이미 멤버인 상태로 다시 추가하려 해 규칙에 거부됨
                     try {
                       if (!auth.currentUser) throw new Error("로그인 필요");
                       const code = inputCode.trim().toUpperCase();
                       if (!code) return alert("코드를 입력하세요.");
+                      setIsJoining(true);
                       // 코드로 커플 문서 찾아서 members에 내 uid 추가
                       await leavingRef.current; // 진행 중인 해제가 끝난 뒤에 참여
                       detachCoupleListener(); // 기존 커플 정리 과정의 변화에 알림이 뜨지 않도록
@@ -598,10 +601,13 @@ const HomePage = () => {
                       setShowCoupleModal(false);
                     } catch (e: any) {
                       alert(e.message || String(e));
+                    } finally {
+                      setIsJoining(false);
                     }
                   }}
-                  style={{ width: "100%", padding: "10px", borderRadius: 8, background: theme.accent, color: "white", border: "none", cursor: "pointer", fontWeight: 600, fontSize: 13, whiteSpace: "nowrap" }}
-                >연결하기</button>
+                  disabled={isJoining}
+                  style={{ width: "100%", padding: "10px", borderRadius: 8, background: theme.accent, color: "white", border: "none", cursor: isJoining ? "default" : "pointer", opacity: isJoining ? 0.6 : 1, fontWeight: 600, fontSize: 13, whiteSpace: "nowrap" }}
+                >{isJoining ? "연결 중..." : "연결하기"}</button>
               </div>
             )}
           </div>

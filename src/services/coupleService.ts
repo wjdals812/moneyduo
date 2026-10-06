@@ -1,15 +1,14 @@
 import { db } from "../firebase";
 import {
   collection,
-  updateDoc,
   doc,
   serverTimestamp,
   arrayUnion,
   arrayRemove,
   getDoc,
-  deleteDoc,
   onSnapshot,
   setDoc,
+  writeBatch,
 } from "firebase/firestore";
 
 const COUPLES_COL = "couples";
@@ -62,11 +61,13 @@ export async function joinByCode(currentUid: string, code: string) {
   const coupleRef = doc(db, COUPLES_COL, inviteSnap.data().coupleId);
   const coupleSnap = await at("커플 조회", getDoc(coupleRef));
   if (!coupleSnap.exists()) throw new Error("커플 정보를 찾을 수 없습니다.");
-  // 어느 쓰기가 막히는지 구분되도록 두 단계로 나눠 실행 (두 번째는 첫 번째 결과를 규칙이 확인함)
+  // 멤버 추가 + 내 coupleId 설정을 한 번에 커밋 (왕복 1회, 중간 상태 없음)
+  const batch = writeBatch(db);
   if (!(coupleSnap.data()?.members ?? []).includes(currentUid)) {
-    await at("멤버 추가", updateDoc(coupleRef, { members: arrayUnion(currentUid) }));
+    batch.update(coupleRef, { members: arrayUnion(currentUid) });
   }
-  await at("내 정보 연결", setDoc(doc(db, USERS_COL, currentUid), { coupleId: coupleRef.id }, { merge: true }));
+  batch.set(doc(db, USERS_COL, currentUid), { coupleId: coupleRef.id }, { merge: true });
+  await at("참여 처리", batch.commit());
 
   return { coupleId: coupleRef.id };
 }
@@ -94,12 +95,12 @@ export async function leaveCouple(currentUid: string) {
     return;
   }
 
-  if (members.length === 1) {
-    await deleteDoc(coupleRef);
-  } else {
-    await updateDoc(coupleRef, { members: arrayRemove(currentUid) });
-  }
-  await setDoc(userRef, { coupleId: null }, { merge: true });  // 마지막도
+  // 커플 정리 + 내 coupleId 비우기를 한 번에 커밋
+  const batch = writeBatch(db);
+  if (members.length === 1) batch.delete(coupleRef);
+  else batch.update(coupleRef, { members: arrayRemove(currentUid) });
+  batch.set(userRef, { coupleId: null }, { merge: true });
+  await batch.commit();
 }
 
 export function listenToCouple(coupleId: string, onChange: (data: any) => void) {
