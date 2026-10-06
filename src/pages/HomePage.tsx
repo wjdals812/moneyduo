@@ -66,6 +66,10 @@ const HomePage = () => {
   // 커플 문서 실시간 리스너의 해제 함수를 저장
   // useRef를 쓰는 이유: 리렌더링 없이 최신 값 유지 + cleanup 함수 외부 접근 가능
   const coupleUnsubRef = useRef<(() => void) | null>(null);
+  // 이 리스너로 파트너를 한 번이라도 확인했는지 (이후 파트너가 사라지면 "상대가 해제함" 알림)
+  const hadPartnerRef = useRef(false);
+  // 진행 중인 연결 해제 처리. 화면은 즉시 바뀌지만 서버 처리가 끝나기 전에 참여/생성이 겹치지 않도록 기다린다
+  const leavingRef = useRef<Promise<void>>(Promise.resolve());
   // 가장 최근에 요청된 monthKey를 추적 (오래된 fetch가 늦게 도착해서 최신 월을 덮어쓰는 것 방지)
   const latestMonthKeyRef = useRef("");
 
@@ -97,12 +101,25 @@ const HomePage = () => {
   // - 파트너가 참여하면 즉시 감지해서 partnerName 업데이트
   // - 중복 리스너 방지를 위해 기존 리스너를 먼저 해제하고 새로 붙임
   // ─────────────────────────────────────────────
+  // 연결돼 있던 파트너가 사라졌을 때 한 번만 알림 (내가 해제/참여할 때는 리스너를 먼저 떼므로 뜨지 않음)
+  const notifyPartnerLeft = () => {
+    if (!hadPartnerRef.current) return;
+    hadPartnerRef.current = false;
+    alert("상대방이 연결을 해제했어요.");
+  };
+
+  const detachCoupleListener = () => {
+    coupleUnsubRef.current?.();
+    coupleUnsubRef.current = null;
+  };
+
   const attachCoupleListener = (coupleId: string, currentUid: string) => {
     // 기존에 붙어있던 리스너가 있으면 먼저 해제
     if (coupleUnsubRef.current) {
       coupleUnsubRef.current();
       coupleUnsubRef.current = null;
     }
+    hadPartnerRef.current = false;
 
     // 새 리스너 등록: 커플 문서가 변경될 때마다 콜백 실행
     coupleUnsubRef.current = coupleService.listenToCouple(coupleId, async (data) => {
@@ -110,6 +127,7 @@ const HomePage = () => {
 
       // 커플 문서가 삭제됐거나 null이면 파트너 정보 초기화
       if (!data) {
+        notifyPartnerLeft();
         setPartnerName("");
         setInviteCode("");
         return;
@@ -122,6 +140,7 @@ const HomePage = () => {
       const partnerUid = members.find((m) => m !== currentUid);
 
       if (partnerUid) {
+        hadPartnerRef.current = true;
         // 파트너 uid로 Firestore users 컬렉션에서 이름/이모지 조회
         try {
           const userSnap = await getDoc(doc(db, "users", partnerUid));
@@ -132,7 +151,8 @@ const HomePage = () => {
           console.warn("파트너 정보 조회 실패:", e);
         }
       } else {
-        // 아직 파트너가 참여하지 않은 상태
+        // 파트너가 아직 없거나, 있던 파트너가 연결을 해제한 상태
+        notifyPartnerLeft();
         setPartnerName("");
       }
     });
@@ -248,14 +268,16 @@ const HomePage = () => {
                       coupleUnsubRef.current();
                       coupleUnsubRef.current = null;
                     }
-                    try {
-                      await coupleService.leaveCouple(myUid);
-                      alert("연결 해제되었습니다.");
-                    } catch (e: any) {
-                      alert(e.message || String(e));
-                    }
-                    // 성공/실패 모두 서버 기준으로 내역과 커플 상태를 다시 불러온다 (파트너 내역 즉시 제거)
-                    loadTransactions(myUid, formatMonthKey(month));
+                    leavingRef.current = (async () => {
+                      try {
+                        await coupleService.leaveCouple(myUid);
+                        alert("연결 해제되었습니다.");
+                      } catch (e: any) {
+                        alert(e.message || String(e));
+                      }
+                      // 성공/실패 모두 서버 기준으로 내역과 커플 상태를 다시 불러온다 (파트너 내역 즉시 제거)
+                      loadTransactions(myUid, formatMonthKey(month));
+                    })();
                   }}
                   style={{
                     padding: "6px 10px", background: theme.surfaceMuted,
@@ -536,6 +558,8 @@ const HomePage = () => {
                         setIsCreating(true);
                         if (!auth.currentUser) throw new Error("로그인 필요");
                         // Firestore에 couple 문서 생성 + 초대 코드 반환
+                        await leavingRef.current;
+                        detachCoupleListener();
                         const res = await coupleService.createCouple(auth.currentUser.uid);
                         setInviteCode(res.inviteCode);
                         // 코드 생성 직후 리스너 붙이기 (파트너 참여 즉시 감지)
@@ -567,6 +591,8 @@ const HomePage = () => {
                       const code = inputCode.trim().toUpperCase();
                       if (!code) return alert("코드를 입력하세요.");
                       // 코드로 커플 문서 찾아서 members에 내 uid 추가
+                      await leavingRef.current; // 진행 중인 해제가 끝난 뒤에 참여
+                      detachCoupleListener(); // 기존 커플 정리 과정의 변화에 알림이 뜨지 않도록
                       const result = await coupleService.joinByCode(auth.currentUser.uid, code);
                       // 참여 후 리스너 붙이기
                       attachCoupleListener(result.coupleId, auth.currentUser!.uid);
