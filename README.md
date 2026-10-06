@@ -1,85 +1,88 @@
-# React + TypeScript + Vite
+# 💑 MoneyDuo — 커플 공동 가계부
 
-## 배포 링크
+둘이서 함께 쓰는 가계부 웹앱입니다. 초대 코드로 짝꿍과 연결하면 서로의 지출을 실시간으로 공유하고, 월 예산과 카테고리별 한도를 함께 관리할 수 있습니다.
 
-- https://moneyduo.vercel.app (Vercel, `main` 브랜치 push 시 자동 배포)
+|                  |                                                                                            |
+| ---------------- | ------------------------------------------------------------------------------------------ |
+| 🔗 **배포 링크** | https://moneyduo.vercel.app                                                                |
+| 🧪 **체험 방법** | 로그인 화면의 **데모 로그인** 클릭 (방문자마다 독립된 익명 계정 생성, 가입 불필요)         |
+| 📅 **개발 기간** | 2026.06 ~ (1인 개발)                                                                       |
+| 🛠 **기술 스택** | React 19 · TypeScript · Vite · Tailwind CSS · Firebase(Auth/Firestore) · Recharts · Vercel |
 
-## 배포 시 주의사항: Firestore 규칙
+<!-- TODO: 주요 화면 스크린샷 또는 GIF를 docs/images/ 에 넣고 아래처럼 추가
+![홈](docs/images/home.png) ![차트](docs/images/chart.png)
+-->
 
-`git push`(코드 배포)와 `firebase deploy --only firestore:rules`(Firestore 보안 규칙 배포)는 **완전히 별개의 배포 경로**입니다.
+## ✨ 주요 기능
 
-- [firestore.rules](firestore.rules) 파일을 수정했다면, 그 즉시 `npm run deploy:rules`로 배포해야 실제 서버에 반영됩니다. 커밋/푸시만 해서는 반영되지 않습니다.
-- 이미 배포된 규칙은 시간이 지나도 만료되지 않습니다. (Firebase가 새 프로젝트에 기본으로 깔아주는 "테스트 모드" 규칙만 30일 후 자동 만료됩니다.)
-- 즉, "오랜만에 실행했더니 데이터가 안 보인다"는 시간이 지나서가 아니라, `firestore.rules`를 고치고 배포를 깜빡했을 때만 생기는 문제입니다.
+| 기능           | 설명                                                          |
+| -------------- | ------------------------------------------------------------- |
+| 커플 연결      | 6자리 초대 코드로 연결/해제. 연결 후 거래 내역을 서로 열람    |
+| 수입·지출 기록 | 금액/카테고리/메모/날짜/결제자(나·짝꿍·같이) 입력, 수정, 삭제 |
+| 결제수단       | 현금/카드 선택 및 직접 관리                                   |
+| 월별 조회      | 월 이동, 나/짝꿍/같이/전체 필터                               |
+| 예산 관리      | 월 예산, 카테고리별 한도 설정과 사용률 표시                   |
+| 통계 차트      | 카테고리별 지출 비율 도넛 차트                                |
+| 일정/기념일    | 캘린더에 일정 등록·수정                                       |
+| 홈 화면 추가(PWA) | 모바일에서 홈 화면에 추가하면 주소창 없이 앱처럼 실행 (아이폰: 공유 → 홈 화면에 추가 / 안드로이드: 메뉴 → 홈 화면에 추가) |
+| 카테고리 관리  | 사용자별 카테고리 추가/수정                                   |
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## 🧱 기술 구성
 
-Currently, two official plugins are available:
+| 영역       | 선택                              | 이유                                |
+| ---------- | --------------------------------- | ----------------------------------- |
+| 프론트엔드 | React + TypeScript + Vite         | 타입 안정성, 빠른 개발 환경         |
+| 스타일     | Tailwind CSS                      | 모바일 중심 UI를 빠르게 구성        |
+| 인증/DB    | Firebase Auth, Firestore          | 서버 없이 실시간 동기화와 인증 해결 |
+| 차트       | Recharts                          | React 컴포넌트로 선언적 구성        |
+| 배포       | Vercel (`main` push 시 자동 배포) | CI/CD 설정 불필요                   |
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🔥 문제 해결 경험
 
-## React Compiler
+| 문제                                       | 원인                                                                                             | 해결                                                              |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| 커플이 서로의 거래를 못 읽음               | 보안 규칙이 작성자의 "현재" coupleId와 비교해, 커플 재구성 이력이 있으면 목록 쿼리 전체가 거부됨 | 거래 문서에 저장된 `coupleId`와 비교하도록 규칙 변경              |
+| 가입 직후 `permission-denied`              | `coupleId` 필드가 없는 문서를 `.data.coupleId`로 접근해 규칙 평가 오류 발생                      | `get('coupleId', null)`로 안전하게 읽도록 규칙 수정               |
+| 같은 결제자가 사람마다 반대로 보임         | `paidBy`가 작성자 기준("나")으로 저장됨                                                          | 보는 사람이 작성자가 아니면 나/짝꿍을 뒤집어 표시 (`paidByLabel`) |
+| 월을 빠르게 넘기면 이전 달 데이터가 표시됨 | 이전 요청의 응답이 늦게 도착해 덮어씀                                                            | 오래된 응답을 무시하는 가드 추가                                  |
+| 데모 계정이 방문자끼리 공유됨              | 고정 계정으로 로그인                                                                             | Firebase 익명 로그인으로 방문자마다 독립 계정 사용                |
+| 거래 조회 쿼리 실패                        | `coupleId + date` 복합 쿼리에 인덱스 없음                                                        | 복합 인덱스 등록 (`firestore.indexes.json`)                       |
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🔐 보안 설계 (Firestore Rules)
 
-## Expanding the ESLint configuration
+- 거래 수정/삭제는 작성자만 가능, 읽기는 같은 커플만 가능
+- `users.coupleId`는 해당 커플의 멤버일 때만 변경 가능 (임의로 남의 커플에 들어갈 수 없음)
+- 커플 가입/탈퇴는 "멤버 1명 추가/제거"만 허용하도록 규칙으로 제한
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 📁 폴더 구조
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+src/
+├─ pages/        화면 (홈, 차트, 일정, 입력/수정, 마이페이지 …)
+├─ components/   공통 컴포넌트 (하단 네비게이션, 월 이동)
+├─ services/     Firestore 접근 (coupleService, transactionService)
+├─ types/        공통 타입
+└─ firebase.ts   Firebase 초기화
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🚀 실행 방법
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev        # 개발 서버
+npm run build      # 타입 체크 + 빌드
 ```
+
+`src/firebase.ts`의 Firebase 설정이 필요합니다.
+
+## ⚠️ 배포 시 주의사항: Firestore 규칙
+
+`git push`(코드 배포)와 `firebase deploy --only firestore:rules`(규칙 배포)는 **별개의 배포 경로**입니다.
+
+- [firestore.rules](firestore.rules)를 수정했다면 `npm run deploy:rules`로 따로 배포해야 반영됩니다.
+- 배포된 규칙은 만료되지 않습니다. (Firebase 기본 "테스트 모드" 규칙만 30일 후 만료)
+
+## 📝 배운 점 / 개선 계획
+
+- 보안 규칙은 "필드가 없을 때"까지 고려해야 한다는 점, 클라이언트만으로는 커플 가입 같은 권한 로직에 한계가 있다는 점을 배웠습니다.
+- 개선 예정: 커플 가입/탈퇴를 Cloud Function으로 이전, 예산 초과 알림, 거래 내역 검색
