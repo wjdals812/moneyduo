@@ -9,9 +9,22 @@
 | 📅 **개발 기간** | 2026.06 ~ (1인 개발)                                                                       |
 | 🛠 **기술 스택** | React 19 · TypeScript · Vite · Tailwind CSS · Firebase(Auth/Firestore) · Recharts · Vercel |
 
-<!-- TODO: 주요 화면 스크린샷 또는 GIF를 docs/images/ 에 넣고 아래처럼 추가
-![홈](docs/images/home.png) ![차트](docs/images/chart.png)
--->
+## 📱 주요 화면
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/images/login.png" width="200"><br>로그인</td>
+    <td align="center"><img src="docs/images/home.png" width="200"><br>홈 (내역·예산)</td>
+    <td align="center"><img src="docs/images/add.png" width="200"><br>내역 추가</td>
+    <td align="center"><img src="docs/images/chart.png" width="200"><br>통계</td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/images/calendar.png" width="200"><br>캘린더</td>
+    <td align="center"><img src="docs/images/couple-code.png" width="200"><br>커플 초대 코드</td>
+    <td align="center"><img src="docs/images/couple-home.png" width="200"><br>커플 공유 홈</td>
+    <td align="center"><img src="docs/images/mypage.png" width="200"><br>내 정보</td>
+  </tr>
+</table>
 
 ## ✨ 주요 기능
 
