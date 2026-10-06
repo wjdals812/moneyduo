@@ -47,7 +47,8 @@ const HomePage = () => {
   // ── 상태 선언 ──────────────────────────────
   const [, setUserName] = useState("");                        // 로그인한 유저 이름 (UI에 직접 표시 안 함)
   const [showCoupleModal, setShowCoupleModal] = useState(false); // 커플 연결 모달 표시 여부
-  const [inviteCode, setInviteCode] = useState("");            // 내가 생성한 초대 코드
+  const [coupleTab, setCoupleTab] = useState<"create" | "join">("create"); // 모달 탭
+  const [inviteCode, setInviteCode] = useState("");          // 내가 생성한 초대 코드
   const [inputCode, setInputCode] = useState("");              // 파트너 초대 코드 입력값
   const [isCreating, setIsCreating] = useState(false);         // 초대 코드 생성 중 로딩 상태
   const [, setCoupleInfo] = useState<any>(null);               // 커플 문서 데이터 (파트너 감지용)
@@ -486,69 +487,68 @@ const HomePage = () => {
       {showCoupleModal && (
         <div style={{ position: "fixed", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 40 }}>
           {/* 백드롭 클릭 시 모달 닫기 */}
-          <div onClick={() => setShowCoupleModal(false)} style={{ position: "absolute", inset: 0, background: "rgba(15, 23, 42, 0.4)" }} />
-          <div style={{ background: theme.surface, width: "92%", maxWidth: "420px", borderRadius: theme.radiusMd, border: `1px solid ${theme.border}`, padding: "18px", zIndex: 41 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <div style={{ fontWeight: 700, color: theme.text }}>커플 연결</div>
-              <button onClick={() => setShowCoupleModal(false)} style={{ all: "unset", cursor: "pointer", color: theme.textMuted }}>✕</button>
+          <div onClick={() => setShowCoupleModal(false)} style={{ position: "absolute", inset: 0, background: "rgba(15, 23, 42, 0.5)" }} />
+          <div style={{ background: theme.surface, width: "86%", maxWidth: "320px", borderRadius: 14, padding: "20px 16px 16px", zIndex: 41, boxShadow: "0 20px 40px rgba(15, 23, 42, 0.2)" }}>
+            <button onClick={() => setShowCoupleModal(false)} style={{ all: "unset", cursor: "pointer", color: theme.textFaint, position: "absolute", top: 14, right: 16, fontSize: 16 }}>✕</button>
+
+            <div style={{ textAlign: "center", marginBottom: 18 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: theme.text }}>짝꿍과 연결하기</div>
+              <div style={{ fontSize: 12, color: theme.textMuted, marginTop: 4 }}>초대 코드로 가계부를 함께 써요</div>
             </div>
 
-            {/* 초대 코드 생성 / 초기화 버튼 */}
-            <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-              <button
-                onClick={async () => {
-                  try {
-                    setIsCreating(true);
-                    if (!auth.currentUser) throw new Error("로그인 필요");
-                    // Firestore에 couple 문서 생성 + 초대 코드 반환
-                    const res = await coupleService.createCouple(auth.currentUser.uid);
-                    setInviteCode(res.inviteCode);
-                    // 코드 생성 직후 리스너 붙이기 (파트너 참여 즉시 감지)
-                    attachCoupleListener(res.coupleId, auth.currentUser.uid);
-                  } catch (e: any) {
-                    alert(e.message || String(e));
-                  } finally {
-                    setIsCreating(false);
-                  }
-                }}
-                style={{ flex: 1, padding: "10px", borderRadius: theme.radiusSm, background: theme.surfaceMuted, border: `1px solid ${theme.border}`, cursor: "pointer", fontWeight: 600, color: theme.text }}
-              >
-                {isCreating ? "생성중..." : "초대 코드 생성"}
-              </button>
-              <button
-                onClick={() => setInviteCode("")}
-                style={{ padding: "10px", borderRadius: theme.radiusSm, background: theme.surfaceMuted, border: `1px solid ${theme.border}`, cursor: "pointer", fontWeight: 600, color: theme.textMuted }}
-              >
-                초기화
-              </button>
+            {/* 탭: 코드 만들기 / 코드 입력 */}
+            <div style={{ display: "flex", background: theme.surfaceMuted, borderRadius: 10, padding: 3, marginBottom: 18 }}>
+              {([["create", "코드 만들기"], ["join", "코드 입력"]] as const).map(([key, label]) => (
+                <button
+                  key={key}
+                  onClick={() => setCoupleTab(key)}
+                  style={{ flex: 1, padding: "9px 0", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, background: coupleTab === key ? theme.surface : "transparent", color: coupleTab === key ? theme.text : theme.textMuted, boxShadow: coupleTab === key ? theme.shadow : "none" }}
+                >{label}</button>
+              ))}
             </div>
 
-            {/* 생성된 초대 코드 표시 + 클립보드 복사 */}
-            {inviteCode ? (
-              <div style={{ marginBottom: 12 }}>
-                <div style={{ fontSize: 12, color: theme.textMuted, marginBottom: 6 }}>초대 코드</div>
-                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                  <div style={{ flex: 1, padding: "10px", borderRadius: theme.radiusSm, background: theme.surfaceMuted, fontWeight: 700, color: theme.text, border: `1px solid ${theme.border}` }}>{inviteCode}</div>
+            {coupleTab === "create" ? (
+              <div style={{ textAlign: "center" }}>
+                {inviteCode ? (
+                  <>
+                    <div style={{ fontSize: 12, color: theme.textMuted, marginBottom: 8 }}>이 코드를 짝꿍에게 알려주세요</div>
+                    <div style={{ padding: "12px", borderRadius: 10, background: theme.accentMuted, color: theme.accent, fontSize: 22, fontWeight: 800, letterSpacing: 4, marginBottom: 12 }}>{inviteCode}</div>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard?.writeText(inviteCode);
+                        alert("코드가 복사되었습니다.");
+                      }}
+                      style={{ width: "100%", padding: "10px", borderRadius: 8, background: theme.accent, color: "white", border: "none", cursor: "pointer", fontWeight: 600, fontSize: 13, whiteSpace: "nowrap" }}
+                    >코드 복사</button>
+                  </>
+                ) : (
                   <button
-                    onClick={() => {
-                      navigator.clipboard?.writeText(inviteCode);
-                      alert("코드가 복사되었습니다.");
+                    onClick={async () => {
+                      try {
+                        setIsCreating(true);
+                        if (!auth.currentUser) throw new Error("로그인 필요");
+                        // Firestore에 couple 문서 생성 + 초대 코드 반환
+                        const res = await coupleService.createCouple(auth.currentUser.uid);
+                        setInviteCode(res.inviteCode);
+                        // 코드 생성 직후 리스너 붙이기 (파트너 참여 즉시 감지)
+                        attachCoupleListener(res.coupleId, auth.currentUser.uid);
+                      } catch (e: any) {
+                        alert(e.message || String(e));
+                      } finally {
+                        setIsCreating(false);
+                      }
                     }}
-                    style={{ padding: "8px 10px", borderRadius: theme.radiusSm, background: theme.accent, color: "white", border: "none", cursor: "pointer" }}
-                  >복사</button>
-                </div>
+                    style={{ width: "100%", padding: "10px", borderRadius: 8, background: theme.accent, color: "white", border: "none", cursor: "pointer", fontWeight: 600, fontSize: 13, whiteSpace: "nowrap" }}
+                  >{isCreating ? "생성중..." : "초대 코드 만들기"}</button>
+                )}
               </div>
-            ) : null}
-
-            {/* 파트너 초대 코드 입력 → 커플에 참여 */}
-            <div style={{ marginTop: 6 }}>
-              <div style={{ fontSize: 12, color: theme.textMuted, marginBottom: 6 }}>코드로 참여</div>
-              <div style={{ display: "flex", gap: 8 }}>
+            ) : (
+              <div>
                 <input
                   value={inputCode}
                   onChange={(e) => setInputCode(e.target.value.toUpperCase())} // 자동 대문자 변환
                   placeholder="초대 코드 입력"
-                  style={{ flex: 1, padding: "10px", borderRadius: theme.radiusSm, border: `1px solid ${theme.border}` }}
+                  style={{ width: "100%", boxSizing: "border-box", padding: "10px", borderRadius: 8, border: `1px solid ${theme.border}`, background: theme.surfaceMuted, textAlign: "center", fontSize: 15, fontWeight: 700, letterSpacing: 3, marginBottom: 12, outline: "none" }}
                 />
                 <button
                   onClick={async () => {
@@ -566,10 +566,10 @@ const HomePage = () => {
                       alert(e.message || String(e));
                     }
                   }}
-                  style={{ padding: "10px", borderRadius: theme.radiusSm, background: theme.accent, color: "white", border: "none", cursor: "pointer", fontWeight: 600 }}
-                >참여</button>
+                  style={{ width: "100%", padding: "10px", borderRadius: 8, background: theme.accent, color: "white", border: "none", cursor: "pointer", fontWeight: 600, fontSize: 13, whiteSpace: "nowrap" }}
+                >연결하기</button>
               </div>
-            </div>
+            )}
           </div>
         </div>
       )}
