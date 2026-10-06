@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db, auth } from "../firebase";
 import coupleService from "../services/coupleService";
@@ -21,10 +22,7 @@ const EditTransactionPage = () => {
   const [coupleId, setCoupleId] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const uid = auth.currentUser?.uid;
-      if (!uid) return;
-
+    const fetchData = async (uid: string) => {
       // 카테고리 불러오기
       const ref = doc(db, "userSettings", uid);
       const snapshot = await getDoc(ref);
@@ -54,7 +52,11 @@ const EditTransactionPage = () => {
         setDate(data.date);
       }
     };
-    fetchData();
+    // 새로고침/직접 진입 시 auth.currentUser가 null이므로 인증 복원을 기다린다
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) fetchData(user.uid);
+    });
+    return () => unsubscribe();
   }, [id]);
 
   const handleUpdate = async () => {

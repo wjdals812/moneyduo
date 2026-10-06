@@ -34,6 +34,7 @@ const LoginPage = () => {
       navigate("/home");
     } catch (error) {
       console.error("로그인 실패:", error);
+      alert(`로그인에 실패했습니다.\n${(error as { code?: string }).code ?? error}`);
     }
   };
 
@@ -46,6 +47,7 @@ const LoginPage = () => {
       navigate("/home");
     } catch (error) {
       console.error("데모 로그인 실패:", error);
+      alert(`데모 로그인에 실패했습니다.\n${(error as { code?: string }).code ?? error}`);
     }
   };
 

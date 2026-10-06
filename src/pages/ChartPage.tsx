@@ -183,9 +183,17 @@ const ChartPage = () => {
 
   const budgetBarColor = (pct: number) => (pct >= 100 ? theme.danger : pct >= 80 ? "#d97706" : theme.accent);
 
-  if (loading) {
-    return <div className="flex justify-center items-center h-screen">로딩 중...</div>;
-  }
+  if (loading) return (
+    <div style={{
+      minHeight: "100svh",
+      background: theme.bg,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    }}>
+      <div style={{ fontSize: "13px", fontWeight: 600, color: theme.textMuted }}>불러오는 중…</div>
+    </div>
+  );
 
   return (
     <div

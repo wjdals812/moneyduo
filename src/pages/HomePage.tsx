@@ -185,8 +185,11 @@ const HomePage = () => {
       if (user) {
         // ── 로그인된 상태 ──
         setUserName(user.displayName || "");
-        await loadTransactions(user.uid, formatMonthKey(month));
-        const settingsSnap = await getDoc(doc(db, "userSettings", user.uid));
+        // 내역과 예산 설정은 서로 의존하지 않으므로 병렬로 조회
+        const [, settingsSnap] = await Promise.all([
+          loadTransactions(user.uid, formatMonthKey(month)),
+          getDoc(doc(db, "userSettings", user.uid)),
+        ]);
         setMonthlyBudget(settingsSnap.exists() ? (settingsSnap.data().monthlyBudget ?? null) : null);
 
       } else {
