@@ -115,6 +115,40 @@ describe('join', () => {
   })
 })
 
+describe('join: 연결 전 내역 공유', () => {
+  const seedTx = (id: string, createdBy: string, coupleId: string | null) =>
+    db.doc(`transactions/${id}`).set({ createdBy, coupleId, amount: 1000, date: '2026-10-01' })
+  const coupleOf = async (id: string) => (await data(`transactions/${id}`))?.coupleId
+
+  it('참여하면 양쪽의 연결 전 내역이 커플 공유로 바뀐다', async () => {
+    await seedCouple('couple1', ['A'], 'XXXXXX')
+    await seedTx('a1', 'A', null)
+    await seedTx('b1', 'B', null)
+    await join(db, 'B', 'XXXXXX')
+    expect(await coupleOf('a1')).toBe('couple1')
+    expect(await coupleOf('b1')).toBe('couple1')
+  })
+
+  it('이전 커플 내역과 다른 사람의 내역은 건드리지 않는다', async () => {
+    await seedCouple('couple1', ['A'], 'XXXXXX')
+    await seedTx('b-old', 'B', 'previous')
+    await seedTx('c1', 'C', null)
+    await join(db, 'B', 'XXXXXX')
+    expect(await coupleOf('b-old')).toBe('previous')
+    expect(await coupleOf('c1')).toBeNull()
+  })
+
+  it('한 번에 처리 가능한 개수(배치 한도)를 넘는 내역도 모두 전환한다', async () => {
+    await seedCouple('couple1', ['A'], 'XXXXXX')
+    const writer = db.bulkWriter()
+    for (let i = 0; i < 850; i++) writer.set(db.doc(`transactions/bulk${i}`), { createdBy: 'B', coupleId: null, amount: 1, date: '2026-10-01' })
+    await writer.close()
+    await join(db, 'B', 'XXXXXX')
+    const left = await db.collection('transactions').where('createdBy', '==', 'B').where('coupleId', '==', null).get()
+    expect(left.size).toBe(0)
+  })
+})
+
 describe('leave', () => {
   it('두 명 중 한 명이 나가면 멤버만 줄고 coupleId가 비워진다', async () => {
     await seedCouple('couple1', ['A', 'B'])

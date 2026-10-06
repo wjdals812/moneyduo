@@ -29,6 +29,19 @@ const isAlreadyExists = (e: unknown) => {
   return code === 6 || code === 'already-exists'
 }
 
+// 연결 전에 쓴 내역(coupleId가 null)을 커플 공유로 바꾼다. 이전 커플 내역은 그대로 둔다.
+// 이미 바뀐 건 다시 조회되지 않아 몇 번 호출해도 안전하다 (실패해도 다음 join 때 이어서 처리).
+async function shareExistingTransactions(db: Firestore, uids: string[], coupleId: string) {
+  for (const uid of uids) {
+    const { docs } = await db.collection('transactions').where('createdBy', '==', uid).where('coupleId', '==', null).get()
+    for (let i = 0; i < docs.length; i += 400) { // 배치 한도(500) 아래로 나눠 쓴다
+      const batch = db.batch()
+      for (const d of docs.slice(i, i + 400)) batch.update(d.ref, { coupleId })
+      await batch.commit()
+    }
+  }
+}
+
 export async function leave(db: Firestore, uid: string): Promise<void> {
   await db.runTransaction(async (t) => {
     const userRef = db.doc(`users/${uid}`)
@@ -65,7 +78,7 @@ export async function join(db: Firestore, uid: string, rawCode: unknown) {
   if (typeof rawCode !== 'string' || !rawCode.trim()) throw new ApiError(400, '코드를 입력하세요.')
   const code = rawCode.trim().toUpperCase()
   if (!/^[A-Z0-9]{1,20}$/.test(code)) throw new ApiError(404, '유효하지 않은 코드입니다.') // 문서 경로로 쓸 수 없는 입력 차단
-  return db.runTransaction(async (t) => {
+  const { coupleId, members } = await db.runTransaction(async (t) => {
     const userRef = db.doc(`users/${uid}`)
     const [invite, user] = await Promise.all([t.get(db.doc(`inviteCodes/${code}`)), t.get(userRef)])
     if (!invite.exists) throw new ApiError(404, '유효하지 않은 코드입니다.')
@@ -82,6 +95,9 @@ export async function join(db: Firestore, uid: string, rawCode: unknown) {
     }
     if (old) queueLeave(t, uid, old)
     t.set(userRef, { coupleId }, { merge: true })
-    return { coupleId }
+    return { coupleId, members: [...new Set([...members, uid])] }
   })
+  // 연결은 이미 끝났으므로 공유 전환이 실패해도 참여는 성공으로 돌려준다 (다음 join 호출 때 이어서 처리됨)
+  await shareExistingTransactions(db, members, coupleId).catch((e) => console.error('내역 공유 전환 실패:', e?.message))
+  return { coupleId }
 }

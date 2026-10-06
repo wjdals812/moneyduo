@@ -47,7 +47,7 @@ paths:
   /api/couple/join:
     post:
       summary: 초대 코드로 커플 참여
-      description: 코드는 대소문자·앞뒤 공백을 무시합니다. 이미 참여한 커플에 다시 요청해도 안전합니다(멱등).
+      description: 코드는 대소문자·앞뒤 공백을 무시합니다. 이미 참여한 커플에 다시 요청해도 안전합니다(멱등). 참여하면 두 사람이 연결 전에 기록한 내역(coupleId 없는 내역)도 커플 공유로 전환됩니다. 이전 커플의 내역은 그대로 둡니다.
       requestBody:
         required: true
         content:

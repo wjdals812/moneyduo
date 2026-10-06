@@ -15,6 +15,9 @@ import { theme } from "../theme";
 // 📅 월(month) 포맷팅 헬퍼 함수
 // 예: new Date(2024, 5) → "2024-06"
 // ─────────────────────────────────────────────
+// 연결하면 서버가 연결 전 내역도 커플 공유로 바꾸므로, 만들기·참여 직전에 한 번 알린다
+const SHARE_NOTICE = "연결하면 지금까지 기록한 내역도 상대와 공유돼요. 계속할까요?";
+
 const formatMonthKey = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 
 // ─────────────────────────────────────────────
@@ -552,6 +555,7 @@ const HomePage = () => {
                   <button
                     onClick={async () => {
                       if (isCreating) return; // 연타 방지
+                      if (!confirm(SHARE_NOTICE)) return;
                       try {
                         setIsCreating(true);
                         if (!auth.currentUser) throw new Error("로그인 필요");
@@ -589,6 +593,7 @@ const HomePage = () => {
                       if (!auth.currentUser) throw new Error("로그인 필요");
                       const code = inputCode.trim().toUpperCase();
                       if (!code) return alert("코드를 입력하세요.");
+                      if (!confirm(SHARE_NOTICE)) return;
                       setIsJoining(true);
                       // 코드로 커플 문서 찾아서 members에 내 uid 추가
                       await leavingRef.current; // 진행 중인 해제가 끝난 뒤에 참여
