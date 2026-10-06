@@ -495,7 +495,7 @@ const HomePage = () => {
         onClick={() => navigate("/add")}
         style={{
           position: "fixed",
-          bottom: "88px", right: "calc(50% - 184px)",
+          bottom: "calc(env(safe-area-inset-bottom) + 64px)", right: "calc(50% - 184px)",
           width: "48px", height: "48px",
           borderRadius: theme.radiusMd,
           background: theme.accent,
