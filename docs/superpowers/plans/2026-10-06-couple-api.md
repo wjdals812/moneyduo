@@ -797,3 +797,157 @@ git commit -m "feat: 보안 규칙에서 커플 관련 클라이언트 쓰기 �
 - [ ] **Step 7: 배포 후 최종 확인**
 
 앱에서 Task 4 Step 6의 표를 다시 수행한다. 추가로 브라우저 콘솔에서 클라이언트가 직접 `couples` 쓰기를 시도하면 `permission-denied`가 나는지 확인한다.
+
+---
+
+### Task 6: API 문서화 (OpenAPI + Swagger UI)
+
+**Files:**
+- Create: `public/openapi.yaml`
+- Create: `public/api-docs.html`
+- Modify: `README.md` (배포 링크 표, 실행 방법)
+
+**Interfaces:**
+- Consumes: Task 1~4의 실제 응답 형식 (`create` → 200 `{coupleId, inviteCode}`, `join` → 200 `{coupleId}`, `leave` → 204, 오류 → `{error}`)
+- Produces: `https://moneyduo.vercel.app/api-docs.html` (Swagger UI, Try it out 가능)
+
+- [ ] **Step 1: 명세 작성**
+
+`public/openapi.yaml`:
+
+```yaml
+openapi: 3.0.3
+info:
+  title: MoneyDuo API
+  version: 1.0.0
+  description: |
+    커플 연결 API. 모든 요청에는 Firebase ID 토큰이 필요합니다 (Authorize 버튼에 토큰만 붙여 넣기).
+
+    테스트용 토큰 발급 (익명 계정, `src/firebase.ts`의 apiKey 사용):
+    `curl -s -X POST "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=<apiKey>" -H "Content-Type: application/json" -d "{\"returnSecureToken\":true}"` 응답의 `idToken` 값 (약 1시간 유효)
+servers:
+  - url: /
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Firebase ID Token
+  schemas:
+    Error:
+      type: object
+      properties:
+        error: { type: string, example: 로그인이 필요해요. }
+  responses:
+    Unauthorized:
+      description: 토큰이 없거나 유효하지 않음
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+security:
+  - bearerAuth: []
+paths:
+  /api/couple/create:
+    post:
+      summary: 커플 생성 (초대 코드 발급)
+      description: 이미 커플이면 기존 커플에서 먼저 나간 뒤 새 커플을 만듭니다.
+      responses:
+        '200':
+          description: 생성됨
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  coupleId: { type: string }
+                  inviteCode: { type: string, example: K7M2QX }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /api/couple/join:
+    post:
+      summary: 초대 코드로 커플 참여
+      description: 코드는 대소문자·앞뒤 공백을 무시합니다. 이미 참여한 커플에 다시 요청해도 안전합니다(멱등).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code: { type: string, example: K7M2QX }
+      responses:
+        '200':
+          description: 참여됨
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  coupleId: { type: string }
+        '400':
+          description: 코드가 비었거나 문자열이 아님
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404':
+          description: 없는 코드이거나 커플 정보를 찾을 수 없음
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '409':
+          description: 이미 두 명이 연결된 커플
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+  /api/couple/leave:
+    post:
+      summary: 커플 연결 해제
+      description: 마지막 멤버가 나가면 커플 문서도 삭제됩니다. 커플이 없어도 오류 없이 처리됩니다.
+      responses:
+        '204': { description: 해제됨 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+```
+
+- [ ] **Step 2: Swagger UI 페이지 작성**
+
+`public/api-docs.html`:
+
+```html
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MoneyDuo API 문서</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css" />
+</head>
+<body>
+  <div id="ui"></div>
+  <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+  <script>SwaggerUIBundle({ url: '/openapi.yaml', dom_id: '#ui' })</script>
+</body>
+</html>
+```
+
+- [ ] **Step 3: README 갱신**
+
+배포 링크 표에 행을 추가한다.
+
+```
+| 📘 **API 문서** | https://moneyduo.vercel.app/api-docs.html (Swagger UI, Authorize에 Firebase ID 토큰 입력) |
+```
+
+- [ ] **Step 4: 빌드 확인과 커밋**
+
+Run: `npm run build`
+Expected: 통과, `dist/api-docs.html`과 `dist/openapi.yaml`이 생성됨 (`public/`은 그대로 복사됨).
+
+```bash
+git add public/openapi.yaml public/api-docs.html README.md
+git commit -m "docs: 커플 API OpenAPI 명세와 Swagger UI 문서 페이지 추가"
+```
+
+- [ ] **Step 5: 배포 후 확인**
+
+push 후 `https://moneyduo.vercel.app/api-docs.html`을 열어 세 API가 보이는지 확인한다. 토큰을 발급해 Authorize에 넣고 `leave`를 Try it out → `204`, 토큰 없이 실행 → `401`이 나오는지 확인한다.
