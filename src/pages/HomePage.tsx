@@ -431,12 +431,15 @@ const HomePage = () => {
                         </div>
 
                         {/* 수정 버튼 → /edit/:id 페이지로 이동 */}
-                        <button
-                          onClick={() => navigate(`/edit/${tx.id}`)}
-                          style={{ fontSize: "12px", fontWeight: 600, color: theme.textMuted, background: "none", border: "none", cursor: "pointer" }}
-                        >
-                          수정
-                        </button>
+                        {/* 규칙상 수정은 작성자만 가능하므로 짝꿍이 쓴 내역엔 버튼을 숨긴다 */}
+                        {tx.createdBy === auth.currentUser?.uid && (
+                          <button
+                            onClick={() => navigate(`/edit/${tx.id}`)}
+                            style={{ fontSize: "12px", fontWeight: 600, color: theme.textMuted, background: "none", border: "none", cursor: "pointer" }}
+                          >
+                            수정
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>

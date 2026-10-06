@@ -22,25 +22,15 @@ const EditTransactionPage = () => {
   const [coupleId, setCoupleId] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async (uid: string) => {
-      // 카테고리 불러오기
-      const ref = doc(db, "userSettings", uid);
-      const snapshot = await getDoc(ref);
-      if (snapshot.exists() && snapshot.data().categories) {
-        setCategories(snapshot.data().categories);
-      }
-      if (snapshot.exists() && snapshot.data().paymentMethods) {
-        setPaymentMethods(snapshot.data().paymentMethods);
-      }
-
-      // coupleId 불러오기
-      setCoupleId(await coupleService.getMyCoupleId(uid));
-
-      // 기존 내역 불러오기
+    // 기존 내역이 핵심이므로 설정/커플 조회와 병렬로, 서로 실패에 영향받지 않게 불러온다
+    const fetchTransaction = async () => {
       if (!id) return;
-      const docRef = doc(db, "transactions", id);
-      const txSnap = await getDoc(docRef);
-      if (txSnap.exists()) {
+      try {
+        const txSnap = await getDoc(doc(db, "transactions", id));
+        if (!txSnap.exists()) {
+          alert("내역을 찾을 수 없어요.");
+          return;
+        }
         const data = txSnap.data();
         setAmount(String(data.amount));
         setDescription(data.description);
@@ -49,7 +39,26 @@ const EditTransactionPage = () => {
         setPaymentMethod(data.paymentMethod ?? "카드");
         setType(data.type);
         setDate(data.date);
+      } catch (error) {
+        console.error("내역 불러오기 실패:", error);
+        alert(`내역을 불러오지 못했어요. (${(error as { code?: string }).code ?? "알 수 없는 오류"})`);
       }
+    };
+
+    const fetchSettings = async (uid: string) => {
+      try {
+        const snapshot = await getDoc(doc(db, "userSettings", uid));
+        if (snapshot.exists() && snapshot.data().categories) setCategories(snapshot.data().categories);
+        if (snapshot.exists() && snapshot.data().paymentMethods) setPaymentMethods(snapshot.data().paymentMethods);
+      } catch (error) {
+        console.error("설정 불러오기 실패:", error);
+      }
+    };
+
+    const fetchData = (uid: string) => {
+      fetchTransaction();
+      fetchSettings(uid);
+      coupleService.getMyCoupleId(uid).then(setCoupleId).catch((e) => console.error("커플 조회 실패:", e));
     };
     // 새로고침/직접 진입 시 auth.currentUser가 null이므로 인증 복원을 기다린다
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -79,6 +88,7 @@ const EditTransactionPage = () => {
       navigate("/home");
     } catch (error) {
       console.error("수정 실패:", error);
+      alert(`수정에 실패했어요. (${(error as { code?: string }).code ?? "알 수 없는 오류"})`);
     }
   };
 
