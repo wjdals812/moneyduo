@@ -3,22 +3,19 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "engines": {
-    "node": "22.x"
-  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "typecheck:api": "tsc -p tsconfig.api.json",
-    "deploy:rules":"firebase deploy --only firestore:rules",
+    "deploy:rules": "firebase deploy --only firestore:rules",
     "test": "firebase emulators:exec --only firestore --project demo-moneyduo \"vitest run\""
   },
   "dependencies": {
-    "@google-cloud/firestore": "^9.3.1",
+    "@google-cloud/firestore": "^7.11.6",
     "firebase": "^12.14.0",
-    "firebase-admin": "^14.5.0",
+    "firebase-admin": "^13.10.0",
     "react": "^19.2.6",
     "react-datepicker": "^9.1.0",
     "react-dom": "^19.2.6",
