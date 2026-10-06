@@ -73,6 +73,8 @@ const HomePage = () => {
   // ─────────────────────────────────────────────
   const loadTransactions = async (userId: string, monthKey: string) => {
     latestMonthKeyRef.current = monthKey;
+    // 선택한 달만 서버에서 조회 (매번 300건씩 내려받지 않도록)
+    const monthRange = [where("date", ">=", `${monthKey}-01`), where("date", "<=", `${monthKey}-31`)];
     try {
       const myCouple = await coupleService.getMyCouple(userId);
 
@@ -87,11 +89,13 @@ const HomePage = () => {
           getDocs(query(
             collection(db, "transactions"),
             where("coupleId", "==", myCouple.id),
+            ...monthRange,
             orderBy("date", "desc"), limit(300)
           )),
           getDocs(query(
             collection(db, "transactions"),
             where("createdBy", "==", userId),
+            ...monthRange,
             orderBy("date", "desc"), limit(300)
           )),
         ]);
@@ -112,6 +116,7 @@ const HomePage = () => {
         const soloQ = query(
           collection(db, "transactions"),
           where("createdBy", "==", userId),
+          ...monthRange,
           orderBy("date", "desc"),
           limit(300)
         );
