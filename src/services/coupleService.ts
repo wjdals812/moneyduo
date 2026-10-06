@@ -52,11 +52,15 @@ export async function createCouple(currentUid: string) {
 
 export async function joinByCode(currentUid: string, code: string) {
   coupleIdCache.delete(currentUid);
-  const inviteSnap = await at("코드 조회", getDoc(doc(db, INVITES_COL, code)));
+  // 코드 조회와 내 문서 조회는 서로 무관하므로 동시에 (왕복 1회로)
+  const [inviteSnap, mySnap] = await at("코드 조회", Promise.all([
+    getDoc(doc(db, INVITES_COL, code)),
+    getDoc(doc(db, USERS_COL, currentUid)),
+  ]));
   if (!inviteSnap.exists()) throw new Error("유효하지 않은 코드입니다.");
 
-  // 내가 만든 기존 커플 먼저 정리
-  await at("기존 커플 정리", leaveCouple(currentUid));
+  // 내가 만든 기존 커플이 있을 때만 정리 (대부분은 없어서 왕복을 건너뜀)
+  if ((mySnap.data() as any)?.coupleId) await at("기존 커플 정리", leaveCouple(currentUid));
 
   const coupleRef = doc(db, COUPLES_COL, inviteSnap.data().coupleId);
   const coupleSnap = await at("커플 조회", getDoc(coupleRef));
