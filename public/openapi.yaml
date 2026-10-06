@@ -1,0 +1,91 @@
+openapi: 3.0.3
+info:
+  title: MoneyDuo API
+  version: 1.0.0
+  description: |
+    커플 연결 API. 모든 요청에는 Firebase ID 토큰이 필요합니다 (Authorize 버튼에 토큰만 붙여 넣기).
+
+    테스트용 토큰 발급 (익명 계정, `src/firebase.ts`의 apiKey 사용):
+    `curl -s -X POST "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=<apiKey>" -H "Content-Type: application/json" -d "{\"returnSecureToken\":true}"` 응답의 `idToken` 값 (약 1시간 유효)
+servers:
+  - url: /
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Firebase ID Token
+  schemas:
+    Error:
+      type: object
+      properties:
+        error: { type: string, example: 로그인이 필요해요. }
+  responses:
+    Unauthorized:
+      description: 토큰이 없거나 유효하지 않음
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+security:
+  - bearerAuth: []
+paths:
+  /api/couple/create:
+    post:
+      summary: 커플 생성 (초대 코드 발급)
+      description: 이미 커플이면 기존 커플에서 먼저 나간 뒤 새 커플을 만듭니다.
+      responses:
+        '200':
+          description: 생성됨
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  coupleId: { type: string }
+                  inviteCode: { type: string, example: K7M2QX }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /api/couple/join:
+    post:
+      summary: 초대 코드로 커플 참여
+      description: 코드는 대소문자·앞뒤 공백을 무시합니다. 이미 참여한 커플에 다시 요청해도 안전합니다(멱등).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code: { type: string, example: K7M2QX }
+      responses:
+        '200':
+          description: 참여됨
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  coupleId: { type: string }
+        '400':
+          description: 코드가 비었거나 문자열이 아님
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404':
+          description: 없는 코드이거나 커플 정보를 찾을 수 없음
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '409':
+          description: 이미 두 명이 연결된 커플
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+  /api/couple/leave:
+    post:
+      summary: 커플 연결 해제
+      description: 마지막 멤버가 나가면 커플 문서도 삭제됩니다. 커플이 없어도 오류 없이 처리됩니다.
+      responses:
+        '204': { description: 해제됨 }
+        '401': { $ref: '#/components/responses/Unauthorized' }

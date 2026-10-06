@@ -7,6 +7,7 @@
 |                  |                                                                                            |
 | ---------------- | ------------------------------------------------------------------------------------------ |
 | 🔗 **배포 링크** | https://moneyduo.vercel.app                                                                |
+| 📘 **API 문서** | https://moneyduo.vercel.app/api-docs.html (Swagger UI, Authorize에 Firebase ID 토큰 입력) |
 | 🧪 **체험 방법** | 로그인 화면의 **데모 로그인** 클릭 (방문자마다 독립된 익명 계정 생성, 가입 불필요)         |
 | 📅 **개발 기간** | 2026.06 ~ 2026.10 (1인 개발)                                                               |
 | 🛠 **기술 스택** | React 19 · TypeScript · Vite · Tailwind CSS · Firebase(Auth/Firestore) · Recharts · Vercel |
