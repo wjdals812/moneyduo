@@ -489,7 +489,8 @@ const HomePage = () => {
           2) 코드 입력 → 파트너의 커플에 참여
       ─────────────────────────────────────── */}
       {showCoupleModal && (
-        <div style={{ position: "fixed", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 40 }}>
+        // 위쪽 정렬: 폰에서 입력창을 누르면 키보드가 올라와 가운데 모달의 버튼을 가리기 때문
+        <div style={{ position: "fixed", inset: 0, display: "flex", alignItems: "flex-start", justifyContent: "center", paddingTop: "12vh", zIndex: 40 }}>
           {/* 백드롭 클릭 시 모달 닫기 */}
           <div onClick={() => setShowCoupleModal(false)} style={{ position: "absolute", inset: 0, background: "rgba(15, 23, 42, 0.5)" }} />
           <div style={{ background: theme.surface, width: "86%", maxWidth: "320px", borderRadius: 14, padding: "20px 16px 16px", zIndex: 41, boxShadow: "0 20px 40px rgba(15, 23, 42, 0.2)" }}>
@@ -552,6 +553,8 @@ const HomePage = () => {
                   value={inputCode}
                   onChange={(e) => setInputCode(e.target.value.toUpperCase())} // 자동 대문자 변환
                   placeholder="초대 코드 입력"
+                  enterKeyHint="go"
+                  onKeyDown={(e) => { if (e.key === "Enter") (e.currentTarget.nextElementSibling as HTMLButtonElement | null)?.click(); }} // 키보드 이동 키 = 연결하기
                   style={{ width: "100%", boxSizing: "border-box", padding: "10px", borderRadius: 8, border: `1px solid ${theme.border}`, background: theme.surfaceMuted, textAlign: "center", fontSize: 15, fontWeight: 700, letterSpacing: 3, marginBottom: 12, outline: "none" }}
                 />
                 <button

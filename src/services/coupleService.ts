@@ -9,7 +9,6 @@ import {
   getDoc,
   deleteDoc,
   onSnapshot,
-  runTransaction,
   setDoc,
 } from "firebase/firestore";
 
@@ -61,16 +60,13 @@ export async function joinByCode(currentUid: string, code: string) {
   await at("기존 커플 정리", leaveCouple(currentUid));
 
   const coupleRef = doc(db, COUPLES_COL, inviteSnap.data().coupleId);
-  await at("참여 처리", runTransaction(db, async (tx) => {
-    const coupleSnap = await tx.get(coupleRef);
-    if (!coupleSnap.exists()) {
-      throw new Error("커플 정보를 찾을 수 없습니다.");
-    }
-    const members = coupleSnap.data()?.members ?? [];
-    if (members.includes(currentUid)) return;
-    tx.update(coupleRef, { members: arrayUnion(currentUid) });
-    tx.set(doc(db, USERS_COL, currentUid), { coupleId: coupleRef.id }, { merge: true });
-  }));
+  const coupleSnap = await at("커플 조회", getDoc(coupleRef));
+  if (!coupleSnap.exists()) throw new Error("커플 정보를 찾을 수 없습니다.");
+  // 어느 쓰기가 막히는지 구분되도록 두 단계로 나눠 실행 (두 번째는 첫 번째 결과를 규칙이 확인함)
+  if (!(coupleSnap.data()?.members ?? []).includes(currentUid)) {
+    await at("멤버 추가", updateDoc(coupleRef, { members: arrayUnion(currentUid) }));
+  }
+  await at("내 정보 연결", setDoc(doc(db, USERS_COL, currentUid), { coupleId: coupleRef.id }, { merge: true }));
 
   return { coupleId: coupleRef.id };
 }
