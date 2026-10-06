@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "deploy:rules": "firebase deploy --only firestore:rules",
+    "typecheck:api": "tsc -p tsconfig.api.json",
+    "deploy:rules":"firebase deploy --only firestore:rules",
     "test": "firebase emulators:exec --only firestore --project demo-moneyduo \"vitest run\""
   },
   "dependencies": {
