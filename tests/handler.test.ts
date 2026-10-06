@@ -2,15 +2,18 @@ import { describe, expect, it } from 'vitest'
 import { withAuth } from '../api/_lib/handler.js'
 
 const mockRes = () => {
-  const r: any = { code: 0, body: undefined }
-  r.status = (c: number) => ((r.code = c), r)
-  r.json = (b: unknown) => ((r.body = b), r)
-  r.end = () => r
+  const r = {
+    code: 0,
+    body: undefined as unknown,
+    status(c: number) { r.code = c; return r },
+    json(b: unknown) { r.body = b; return r },
+    end() { return r },
+  }
   return r
 }
 const call = async (req: object) => {
   const res = mockRes()
-  await withAuth(async () => ({ ok: true }))(req as any, res)
+  await withAuth(async () => ({ ok: true }))(req as never, res as never)
   return res
 }
 

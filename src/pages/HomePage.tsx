@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import coupleService, { perfLog } from "../services/coupleService";
+import coupleService from "../services/coupleService";
 import { getDoc, doc } from "firebase/firestore";
 import { fetchMonthTransactions, getCachedMonth } from "../services/transactionService";
 import BottomNav from "../components/BottomNav";
@@ -52,7 +52,6 @@ const HomePage = () => {
   const [inputCode, setInputCode] = useState("");              // 파트너 초대 코드 입력값
   const [isJoining, setIsJoining] = useState(false);            // 참여 처리 중 (연타 방지)
   const [isCreating, setIsCreating] = useState(false);         // 초대 코드 생성 중 로딩 상태
-  const [coupleInfo, setCoupleInfo] = useState<any>(null);               // 커플 문서 데이터 (파트너 감지용)
   const [partnerName, setPartnerName] = useState("");          // 파트너 이름 (헤더에 표시)
   const [transactions, setTransactions] = useState<Transaction[]>([]); // 거래 내역 목록
   const [totalExpense, setTotalExpense] = useState(0);         // 총 지출 합계
@@ -124,8 +123,6 @@ const HomePage = () => {
 
     // 새 리스너 등록: 커플 문서가 변경될 때마다 콜백 실행
     coupleUnsubRef.current = coupleService.listenToCouple(coupleId, async (data) => {
-      setCoupleInfo(data);
-
       // 커플 문서가 삭제됐거나 null이면 파트너 정보 초기화
       if (!data) {
         notifyPartnerLeft();
@@ -263,24 +260,19 @@ const HomePage = () => {
                     const ok = confirm("커플 연결을 해제하시겠어요?");
                     if (!ok) return;
                     const myUid = auth.currentUser.uid;
-                    const known = coupleInfo?.id && Array.isArray(coupleInfo.members)
-                      ? { coupleId: coupleInfo.id as string, members: coupleInfo.members as string[] }
-                      : undefined; // 리스너가 가진 최신 커플 정보로 서버 조회 생략
                     // 서버 처리를 기다리지 않고 화면부터 즉시 해제 상태로 바꾼다
                     setPartnerName("");
                     applyTransactions(transactions.filter((t) => t.createdBy === myUid)); // 파트너 내역도 즉시 제거
-                    setCoupleInfo(null);
                     setInviteCode("");
                     if (coupleUnsubRef.current) {
                       coupleUnsubRef.current();
                       coupleUnsubRef.current = null;
                     }
-                    const t0 = performance.now(); // [perf] 임시 측정
                     leavingRef.current = (async () => {
                       try {
-                        await coupleService.leaveCouple(myUid, known);
+                        await coupleService.leaveCouple(myUid);
                         loadTransactions(myUid, formatMonthKey(month)); // 알럿(화면 멈춤) 전에 내역 재조회 시작
-                        alert(`연결 해제되었습니다. (${Math.round(performance.now() - t0)}ms)`);
+                        alert("연결 해제되었습니다.");
                       } catch (e: any) {
                         loadTransactions(myUid, formatMonthKey(month));
                         alert(e.message || String(e));
@@ -597,17 +589,14 @@ const HomePage = () => {
                       const code = inputCode.trim().toUpperCase();
                       if (!code) return alert("코드를 입력하세요.");
                       setIsJoining(true);
-                      const t0 = performance.now(); // [perf] 임시 측정
-                      perfLog.length = 0;
                       // 코드로 커플 문서 찾아서 members에 내 uid 추가
                       await leavingRef.current; // 진행 중인 해제가 끝난 뒤에 참여
-                      perfLog.push(`해제 대기 ${Math.round(performance.now() - t0)}ms`);
                       detachCoupleListener(); // 기존 커플 정리 과정의 변화에 알림이 뜨지 않도록
                       const result = await coupleService.joinByCode(auth.currentUser.uid, code);
                       // 참여 후 리스너 붙이기
                       attachCoupleListener(result.coupleId, auth.currentUser!.uid);
                       loadTransactions(auth.currentUser!.uid, formatMonthKey(month)); // 파트너 내역 바로 반영
-                      alert(`참여되었습니다. (${Math.round(performance.now() - t0)}ms)\n${perfLog.join("\n")}`);
+                      alert("참여되었습니다.");
                       setShowCoupleModal(false);
                     } catch (e: any) {
                       alert(e.message || String(e));

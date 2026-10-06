@@ -1,131 +1,45 @@
-import { db } from "../firebase";
-import {
-  collection,
-  doc,
-  serverTimestamp,
-  arrayUnion,
-  arrayRemove,
-  getDoc,
-  onSnapshot,
-  setDoc,
-  writeBatch,
-} from "firebase/firestore";
+import { auth, db } from "../firebase";
+import { doc, getDoc, onSnapshot } from "firebase/firestore";
 
 const COUPLES_COL = "couples";
 const USERS_COL = "users";
-const INVITES_COL = "inviteCodes";
 
-// 내 coupleId 캐시 (화면 이동마다 users 문서를 다시 읽지 않기 위함). 생성/참여/탈퇴 시 무효화.
+// 내 coupleId 캐시 (화면 이동마다 users 문서를 다시 읽지 않기 위함). 생성/참여/탈퇴 시 갱신.
 const coupleIdCache = new Map<string, string | null>(); // null = 커플 없음이 확정된 상태 (해제 직후 재조회 방지)
 
-// 어느 단계에서 권한 오류가 났는지 알 수 있도록 에러 메시지에 단계 이름을 붙인다
-const at = <T,>(label: string, p: Promise<T>) =>
-  p.catch((e) => { throw new Error(`[${label}] ${e?.message ?? e}`); });
-
-// [perf] 임시 측정용: 각 서버 요청 소요 시간을 콘솔에 출력 (원인 파악 후 제거)
-export const perfLog: string[] = []; // 알럿에 단계별 시간을 보여주기 위한 임시 기록
-const timed = async <T,>(label: string, p: Promise<T>) => {
-  const t0 = performance.now();
-  try { return await p; } finally { const ms = Math.round(performance.now() - t0); perfLog.push(`${label} ${ms}ms`); console.log(`[perf] ${label} ${ms}ms`); }
-};
-
-function generateCode(length = 6) {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // avoid ambiguous chars
-  let out = "";
-  for (let i = 0; i < length; i++) out += chars[Math.floor(Math.random() * chars.length)];
-  return out;
+// 커플 쓰기는 서버 API가 처리한다 (보안 규칙상 클라이언트는 직접 쓸 수 없음)
+async function callApi<T>(path: "create" | "join" | "leave", body?: unknown): Promise<T> {
+  const user = auth.currentUser;
+  if (!user) throw new Error("로그인 필요");
+  const res = await fetch(`/api/couple/${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${await user.getIdToken()}` },
+    body: JSON.stringify(body ?? {}),
+  });
+  if (res.status === 204) return undefined as T;
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error ?? "요청에 실패했어요. 다시 시도해주세요.");
+  return data as T;
 }
 
 export async function createCouple(currentUid: string) {
   coupleIdCache.delete(currentUid);
-  // 이전에 만든 커플이 남아 있을 때만 정리 (users.coupleId는 null일 때만 새 값으로 바뀔 수 있음)
-  const mySnap = await timed("생성: 내 문서 조회", getDoc(doc(db, USERS_COL, currentUid)));
-  if ((mySnap.data() as any)?.coupleId) await leaveCouple(currentUid);
-  const docRef = doc(collection(db, COUPLES_COL)); // ID만 먼저 확보
-  // inviteCodes/{코드} 문서로 코드→coupleId를 조회한다 (couples 쿼리는 규칙상 멤버만 가능).
-  // 초대코드·커플·내 문서를 한 번에 커밋(왕복 1회). 규칙이 기존 코드 덮어쓰기를 막으므로 겹치면 전체 실패 → 새 코드로 재시도
-  for (let i = 0; i < 6; i++) {
-    const inviteCode = generateCode();
-    const batch = writeBatch(db);
-    batch.set(doc(db, INVITES_COL, inviteCode), { coupleId: docRef.id });
-    batch.set(docRef, { members: [currentUid], inviteCode, createdAt: serverTimestamp() });
-    batch.set(doc(db, USERS_COL, currentUid), { coupleId: docRef.id }, { merge: true });
-    try {
-      await timed("생성: 배치 커밋", batch.commit());
-    } catch { continue; /* 코드 중복 */ }
-    coupleIdCache.set(currentUid, docRef.id);
-    return { coupleId: docRef.id, inviteCode };
-  }
-  throw new Error("초대 코드 생성에 실패했어요. 다시 시도해주세요.");
+  const res = await callApi<{ coupleId: string; inviteCode: string }>("create");
+  coupleIdCache.set(currentUid, res.coupleId);
+  return res;
 }
 
 export async function joinByCode(currentUid: string, code: string) {
   coupleIdCache.delete(currentUid);
-  // 코드 조회와 내 문서 조회는 서로 무관하므로 동시에 (왕복 1회로)
-  const [inviteSnap, mySnap] = await at("코드 조회", timed("참여: 코드+내문서 조회", Promise.all([
-    getDoc(doc(db, INVITES_COL, code)),
-    getDoc(doc(db, USERS_COL, currentUid)),
-  ])));
-  if (!inviteSnap.exists()) throw new Error("유효하지 않은 코드입니다.");
-
-  // 내가 만든 기존 커플이 있을 때만 정리 (대부분은 없어서 왕복을 건너뜀)
-  if ((mySnap.data() as any)?.coupleId) await at("기존 커플 정리", leaveCouple(currentUid));
-
-  const coupleRef = doc(db, COUPLES_COL, inviteSnap.data().coupleId);
-  const coupleSnap = await at("커플 조회", timed("참여: 커플 조회", getDoc(coupleRef)));
-  if (!coupleSnap.exists()) throw new Error("커플 정보를 찾을 수 없습니다.");
-  // 멤버 추가 + 내 coupleId 설정을 한 번에 커밋 (왕복 1회, 중간 상태 없음)
-  const batch = writeBatch(db);
-  if (!(coupleSnap.data()?.members ?? []).includes(currentUid)) {
-    batch.update(coupleRef, { members: arrayUnion(currentUid) });
-  }
-  batch.set(doc(db, USERS_COL, currentUid), { coupleId: coupleRef.id }, { merge: true });
-  await at("참여 처리", timed("참여: 배치 커밋", batch.commit()));
-  coupleIdCache.set(currentUid, coupleRef.id); // 이후 내역 조회가 내 문서를 다시 읽지 않도록
-
-  return { coupleId: coupleRef.id };
+  const res = await callApi<{ coupleId: string }>("join", { code });
+  coupleIdCache.set(currentUid, res.coupleId); // 이후 내역 조회가 내 문서를 다시 읽지 않도록
+  return res;
 }
 
-// known: 호출자가 이미 알고 있는 커플 정보(실시간 리스너 값). 주면 조회 2번을 건너뛰고 바로 쓴다.
-export async function leaveCouple(currentUid: string, known?: { coupleId: string; members: string[] }) {
+export async function leaveCouple(currentUid: string) {
   coupleIdCache.delete(currentUid);
-  const userRef = doc(db, USERS_COL, currentUid);
-  if (known && known.members.includes(currentUid)) {
-    const batch = writeBatch(db);
-    const coupleRef = doc(db, COUPLES_COL, known.coupleId);
-    if (known.members.length === 1) batch.delete(coupleRef);
-    else batch.update(coupleRef, { members: arrayRemove(currentUid) });
-    batch.set(userRef, { coupleId: null }, { merge: true });
-    await timed("해제: 배치 커밋", batch.commit());
-    coupleIdCache.set(currentUid, null);
-    return;
-  }
-  const userSnap = await getDoc(userRef);
-  if (!userSnap.exists()) return;
-  const data = userSnap.data() as any;
-  const coupleId = data?.coupleId;
-  if (!coupleId) return;
-
-  const coupleRef = doc(db, COUPLES_COL, coupleId);
-  const coupleSnap = await getDoc(coupleRef);
-  if (!coupleSnap.exists()) {
-    // updateDoc → setDoc with merge
-    await setDoc(userRef, { coupleId: null }, { merge: true });
-    return;
-  }
-
-  const members = coupleSnap.data()?.members ?? [];
-  if (!Array.isArray(members) || !members.includes(currentUid)) {
-    await setDoc(userRef, { coupleId: null }, { merge: true });  // 여기도
-    return;
-  }
-
-  // 커플 정리 + 내 coupleId 비우기를 한 번에 커밋
-  const batch = writeBatch(db);
-  if (members.length === 1) batch.delete(coupleRef);
-  else batch.update(coupleRef, { members: arrayRemove(currentUid) });
-  batch.set(userRef, { coupleId: null }, { merge: true });
-  await batch.commit();
+  await callApi<void>("leave");
+  coupleIdCache.set(currentUid, null);
 }
 
 export function listenToCouple(coupleId: string, onChange: (data: any) => void) {
