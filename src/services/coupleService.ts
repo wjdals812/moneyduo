@@ -20,6 +20,10 @@ const INVITES_COL = "inviteCodes";
 // 내 coupleId 캐시 (화면 이동마다 users 문서를 다시 읽지 않기 위함). 생성/참여/탈퇴 시 무효화.
 const coupleIdCache = new Map<string, string>();
 
+// 어느 단계에서 권한 오류가 났는지 알 수 있도록 에러 메시지에 단계 이름을 붙인다
+const at = <T,>(label: string, p: Promise<T>) =>
+  p.catch((e) => { throw new Error(`[${label}] ${e?.message ?? e}`); });
+
 function generateCode(length = 6) {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // avoid ambiguous chars
   let out = "";
@@ -50,14 +54,14 @@ export async function createCouple(currentUid: string) {
 
 export async function joinByCode(currentUid: string, code: string) {
   coupleIdCache.delete(currentUid);
-  const inviteSnap = await getDoc(doc(db, INVITES_COL, code));
+  const inviteSnap = await at("코드 조회", getDoc(doc(db, INVITES_COL, code)));
   if (!inviteSnap.exists()) throw new Error("유효하지 않은 코드입니다.");
 
   // 내가 만든 기존 커플 먼저 정리
-  await leaveCouple(currentUid);
+  await at("기존 커플 정리", leaveCouple(currentUid));
 
   const coupleRef = doc(db, COUPLES_COL, inviteSnap.data().coupleId);
-  await runTransaction(db, async (tx) => {
+  await at("참여 처리", runTransaction(db, async (tx) => {
     const coupleSnap = await tx.get(coupleRef);
     if (!coupleSnap.exists()) {
       throw new Error("커플 정보를 찾을 수 없습니다.");
@@ -66,7 +70,7 @@ export async function joinByCode(currentUid: string, code: string) {
     if (members.includes(currentUid)) return;
     tx.update(coupleRef, { members: arrayUnion(currentUid) });
     tx.set(doc(db, USERS_COL, currentUid), { coupleId: coupleRef.id }, { merge: true });
-  });
+  }));
 
   return { coupleId: coupleRef.id };
 }

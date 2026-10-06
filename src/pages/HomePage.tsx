@@ -123,9 +123,13 @@ const HomePage = () => {
 
       if (partnerUid) {
         // 파트너 uid로 Firestore users 컬렉션에서 이름/이모지 조회
-        const userSnap = await getDoc(doc(db, "users", partnerUid));
-        const p = userSnap.exists() ? (userSnap.data() as any) : null;
-        setPartnerName(p?.displayName || "");
+        try {
+          const userSnap = await getDoc(doc(db, "users", partnerUid));
+          const p = userSnap.exists() ? (userSnap.data() as any) : null;
+          setPartnerName(p?.displayName || "");
+        } catch (e: any) {
+          alert(`[파트너 정보 조회] ${e?.message ?? e}`);
+        }
       } else {
         // 아직 파트너가 참여하지 않은 상태
         setPartnerName("");
