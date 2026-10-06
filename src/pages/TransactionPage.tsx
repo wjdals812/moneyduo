@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth, db } from "../firebase";
+import { auth } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
+import { fetchMonthTransactions, getCachedMonth } from "../services/transactionService";
+import MonthNavigator from "../components/MonthNavigator";
 import BottomNav from "../components/BottomNav";
 import type { Transaction } from "../types/index";
 import { theme } from "../theme";
@@ -19,29 +20,29 @@ const TransactionPage = () => {
   const navigate = useNavigate();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [filter, setFilter] = useState<FilterType>("all");
-  const [, setUid] = useState("");
+  const [uid, setUid] = useState("");
+  const [month, setMonth] = useState<Date>(new Date());
+  const monthKey = `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, "0")}`;
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setUid(user.uid);
-        const q = query(
-          collection(db, "transactions"),
-          where("createdBy", "==", user.uid),
-          orderBy("date", "desc")
-        );
-        const snapshot = await getDocs(q);
-        const data = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Transaction[];
-        setTransactions(data);
-      } else {
-        navigate("/");
-      }
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) setUid(user.uid);
+      else navigate("/");
     });
     return () => unsubscribe();
   }, [navigate]);
+
+  // 선택한 달만 조회 (캐시가 있으면 먼저 보여주고 뒤에서 갱신)
+  useEffect(() => {
+    if (!uid) return;
+    let stale = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setTransactions(getCachedMonth(uid, monthKey) ?? []);
+    fetchMonthTransactions(uid, monthKey)
+      .then((data) => { if (!stale) setTransactions(data); })
+      .catch(console.error);
+    return () => { stale = true; };
+  }, [uid, monthKey]);
 
   const filtered = filter === "all" ? transactions : transactions.filter((t) => t.paidBy === filter);
 
@@ -78,6 +79,10 @@ const TransactionPage = () => {
       </div>
 
       <div style={{ padding: "16px" }}>
+
+        <div style={{ marginBottom: "12px" }}>
+          <MonthNavigator month={month} onChange={setMonth} />
+        </div>
 
         {/* 필터 탭 */}
         <div style={{

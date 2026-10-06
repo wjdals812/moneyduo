@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { auth, db } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import coupleService from "../services/coupleService";
-import { collection, query, where, orderBy, limit, getDocs, getDoc, doc } from "firebase/firestore";
+import { getDoc, doc } from "firebase/firestore";
+import { fetchMonthTransactions, getCachedMonth } from "../services/transactionService";
 import BottomNav from "../components/BottomNav";
 import MonthNavigator from "../components/MonthNavigator";
 import type { Transaction } from "../types/index";
@@ -67,72 +68,24 @@ const HomePage = () => {
   // 가장 최근에 요청된 monthKey를 추적 (오래된 fetch가 늦게 도착해서 최신 월을 덮어쓰는 것 방지)
   const latestMonthKeyRef = useRef("");
 
-  // ─────────────────────────────────────────────
-  // 💾 거래 내역을 조회하고 월별로 필터링하는 함수
-  // - 커플 내역 + 개인 내역 병렬 조회
-  // - 중복 제거 후 월 필터 적용
-  // ─────────────────────────────────────────────
+  // 💾 거래 내역 반영 (캐시/서버 결과 공통)
+  const applyTransactions = (txData: Transaction[]) => {
+    setTransactions(txData);
+    setTotalExpense(txData.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0));
+    setTotalIncome(txData.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0));
+  };
+
   const loadTransactions = async (userId: string, monthKey: string) => {
     latestMonthKeyRef.current = monthKey;
-    // 선택한 달만 서버에서 조회 (매번 300건씩 내려받지 않도록)
-    const monthRange = [where("date", ">=", `${monthKey}-01`), where("date", "<=", `${monthKey}-31`)];
     try {
-      // 커플 문서 조회는 생략: coupleId(캐시)만 있으면 내역 조회 가능, 커플 정보는 리스너가 비동기로 채움
+      // 커플 문서 조회는 생략: coupleId(캐시)만 있으면 되고, 커플 정보는 리스너가 비동기로 채움
       const coupleId = await coupleService.getMyCoupleId(userId);
+      if (coupleId && !coupleUnsubRef.current) attachCoupleListener(coupleId, userId);
 
-      let txData: Transaction[] = [];
-
-      if (coupleId) {
-        if (!coupleUnsubRef.current) attachCoupleListener(coupleId, userId);
-
-        const [coupleSnap, soloSnap] = await Promise.all([
-          getDocs(query(
-            collection(db, "transactions"),
-            where("coupleId", "==", coupleId),
-            ...monthRange,
-            orderBy("date", "desc"), limit(300)
-          )),
-          getDocs(query(
-            collection(db, "transactions"),
-            where("createdBy", "==", userId),
-            ...monthRange,
-            orderBy("date", "desc"), limit(300)
-          )),
-        ]);
-
-        const allDocs = [...coupleSnap.docs, ...soloSnap.docs];
-        const seen = new Set();
-        txData = allDocs
-          .filter(d => {
-            if (seen.has(d.id)) return false;
-            seen.add(d.id);
-            return true;
-          })
-          .map(d => ({ id: d.id, ...d.data() })) as Transaction[];
-
-        txData.sort((a, b) => b.date.localeCompare(a.date));
-
-      } else {
-        const soloQ = query(
-          collection(db, "transactions"),
-          where("createdBy", "==", userId),
-          ...monthRange,
-          orderBy("date", "desc"),
-          limit(300)
-        );
-        const soloSnap = await getDocs(soloQ);
-        txData = soloSnap.docs.map((d) => ({ id: d.id, ...d.data() })) as Transaction[];
-      }
-
-      // 선택한 달의 내역만 필터링
-      txData = txData.filter((t) => t.date.startsWith(monthKey));
-
+      const txData = await fetchMonthTransactions(userId, monthKey);
       // 이 fetch를 시작한 뒤 더 최신 월 요청이 들어왔다면 결과를 버림 (stale 데이터 방지)
       if (latestMonthKeyRef.current !== monthKey) return;
-
-      setTransactions(txData);
-      setTotalExpense(txData.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0));
-      setTotalIncome(txData.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0));
+      applyTransactions(txData);
     } catch (e) {
       console.error(e);
     }
@@ -214,7 +167,10 @@ const HomePage = () => {
   // 월 변경 시에는 내역만 다시 조회 (인증/예산/커플 리스너는 재실행하지 않음)
   useEffect(() => {
     if (!uid) return;
+    // 캐시가 있으면 즉시 표시하고 뒤에서 갱신
+    const cached = getCachedMonth(uid, formatMonthKey(month));
     // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (cached) { applyTransactions(cached); setLoading(false); }
     loadTransactions(uid, formatMonthKey(month)).finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uid, month]);

@@ -36,8 +36,7 @@ const AddTransactionPage = () => {
       }
 
       // coupleId 불러오기
-      const myCouple = await coupleService.getMyCouple(uid);
-      if (myCouple) setCoupleId(myCouple.id);
+      setCoupleId(await coupleService.getMyCoupleId(uid));
     };
     fetchData();
   }, []);
