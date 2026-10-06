@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import coupleService from "../services/coupleService";
+import coupleService, { perfLog } from "../services/coupleService";
 import { getDoc, doc } from "firebase/firestore";
 import { fetchMonthTransactions, getCachedMonth } from "../services/transactionService";
 import BottomNav from "../components/BottomNav";
@@ -598,14 +598,16 @@ const HomePage = () => {
                       if (!code) return alert("코드를 입력하세요.");
                       setIsJoining(true);
                       const t0 = performance.now(); // [perf] 임시 측정
+                      perfLog.length = 0;
                       // 코드로 커플 문서 찾아서 members에 내 uid 추가
                       await leavingRef.current; // 진행 중인 해제가 끝난 뒤에 참여
+                      perfLog.push(`해제 대기 ${Math.round(performance.now() - t0)}ms`);
                       detachCoupleListener(); // 기존 커플 정리 과정의 변화에 알림이 뜨지 않도록
                       const result = await coupleService.joinByCode(auth.currentUser.uid, code);
                       // 참여 후 리스너 붙이기
                       attachCoupleListener(result.coupleId, auth.currentUser!.uid);
                       loadTransactions(auth.currentUser!.uid, formatMonthKey(month)); // 파트너 내역 바로 반영
-                      alert(`참여되었습니다. (${Math.round(performance.now() - t0)}ms)`);
+                      alert(`참여되었습니다. (${Math.round(performance.now() - t0)}ms)\n${perfLog.join("\n")}`);
                       setShowCoupleModal(false);
                     } catch (e: any) {
                       alert(e.message || String(e));

@@ -23,9 +23,10 @@ const at = <T,>(label: string, p: Promise<T>) =>
   p.catch((e) => { throw new Error(`[${label}] ${e?.message ?? e}`); });
 
 // [perf] 임시 측정용: 각 서버 요청 소요 시간을 콘솔에 출력 (원인 파악 후 제거)
+export const perfLog: string[] = []; // 알럿에 단계별 시간을 보여주기 위한 임시 기록
 const timed = async <T,>(label: string, p: Promise<T>) => {
   const t0 = performance.now();
-  try { return await p; } finally { console.log(`[perf] ${label} ${Math.round(performance.now() - t0)}ms`); }
+  try { return await p; } finally { const ms = Math.round(performance.now() - t0); perfLog.push(`${label} ${ms}ms`); console.log(`[perf] ${label} ${ms}ms`); }
 };
 
 function generateCode(length = 6) {
