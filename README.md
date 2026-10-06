@@ -2,6 +2,8 @@
 
 둘이서 함께 쓰는 가계부 웹앱입니다. 초대 코드로 짝꿍과 연결하면 서로의 지출을 실시간으로 공유하고, 월 예산과 카테고리별 한도를 함께 관리할 수 있습니다.
 
+> **만든 이유:** 데이트통장을 만들려다가, 먼저 둘이 쓰는 지출이 얼마나 되는지 알아야 한다고 생각했습니다. 각자 따로 적으면 합산과 정산이 번거로워서, 같은 가계부를 실시간으로 함께 보고 누가 결제했는지까지 구분해 기록하는 앱을 직접 설계·구현했습니다. 서버 없이 Firebase만으로 인증·실시간 동기화·권한 제어를 해결하는 것이 기술 목표였습니다.
+
 |                  |                                                                                            |
 | ---------------- | ------------------------------------------------------------------------------------------ |
 | 🔗 **배포 링크** | https://moneyduo.vercel.app                                                                |
@@ -50,6 +52,18 @@
 | 차트       | Recharts                          | React 컴포넌트로 선언적 구성        |
 | 배포       | Vercel (`main` push 시 자동 배포) | CI/CD 설정 불필요                   |
 
+## 🏗 아키텍처
+
+```mermaid
+flowchart LR
+  A[React 앱<br/>Vercel 배포] -->|로그인/익명 데모| B[Firebase Auth]
+  A -->|읽기·쓰기| C[(Firestore)]
+  C --- D{Security Rules<br/>커플 멤버만 접근}
+  A -->|초대 코드 조회| E[inviteCodes]
+  E -->|coupleId| F[couples.members]
+  F -->|같은 coupleId| G[transactions 공유]
+```
+
 ## 🔥 문제 해결 경험
 
 | 문제                                       | 원인                                                                                             | 해결                                                              |
@@ -60,6 +74,9 @@
 | 월을 빠르게 넘기면 이전 달 데이터가 표시됨 | 이전 요청의 응답이 늦게 도착해 덮어씀                                                            | 오래된 응답을 무시하는 가드 추가                                  |
 | 데모 계정이 방문자끼리 공유됨              | 고정 계정으로 로그인                                                                             | Firebase 익명 로그인으로 방문자마다 독립 계정 사용                |
 | 거래 조회 쿼리 실패                        | `coupleId + date` 복합 쿼리에 인덱스 없음                                                        | 복합 인덱스 등록 (`firestore.indexes.json`)                       |
+| 일부 모바일에서 조회·로딩이 약 30초씩 걸림 (체감 기준) | 네트워크가 스트리밍 응답을 모아뒀다가 30초 뒤 전달. `experimentalAutoDetectLongPolling`은 연결 시작 시점만 판단해 이 경우를 못 잡음 | 단계별 소요시간을 임시 측정해 원인을 좁힌 뒤 `experimentalForceLongPolling`으로 고정 |
+| 커플 연결/해제가 느림                      | 순차 조회와 여러 번의 개별 쓰기로 왕복 횟수가 많음                                               | 조회 병렬화, 쓰기를 단일 배치로 통합, 화면에 있는 커플 정보를 넘겨 서버 조회 생략, 커플 ID 캐시를 결과로 즉시 갱신 |
+| 첫 화면 로딩이 느림                        | 폰트가 렌더링을 막고 모든 페이지가 한 번에 로드됨                                                | 폰트 렌더링 차단 제거, 페이지 지연 로딩(lazy). 메인 번들 964 kB → 612 kB (gzip 289 kB → 188 kB) |
 
 ## 🗂 데이터 구조 (Firestore)
 
@@ -84,6 +101,8 @@
 - `users.coupleId`는 해당 커플의 멤버일 때만 변경 가능 (임의로 남의 커플에 들어갈 수 없음)
 - 커플 가입/탈퇴는 "멤버 1명 추가/제거"만 허용하도록 규칙으로 제한
 
+**규칙 자동 검증:** Firebase 에뮬레이터 + Vitest로 24개 시나리오를 검증합니다 ([tests/firestore.rules.test.ts](tests/firestore.rules.test.ts)). 다른 커플의 거래 열람, 작성자 위조, 남의 커플로 임의 가입, `coupleId` 필드가 없는 신규 가입자 같은 케이스가 포함되며, 규칙을 일부러 느슨하게 바꾸면 해당 테스트가 실패하는 것까지 확인했습니다.
+
 ## 📁 폴더 구조
 
 ```
@@ -101,6 +120,7 @@ src/
 npm install
 npm run dev        # 개발 서버
 npm run build      # 타입 체크 + 빌드
+npm run test:rules # Firestore 보안 규칙 테스트 (Java 필요, 에뮬레이터 자동 실행)
 ```
 
 `src/firebase.ts`의 Firebase 설정이 필요합니다.
@@ -109,7 +129,8 @@ npm run build      # 타입 체크 + 빌드
 
 `git push`(코드 배포)와 `firebase deploy --only firestore:rules`(규칙 배포)는 **별개의 배포 경로**입니다.
 
-- [firestore.rules](firestore.rules)를 수정했다면 `npm run deploy:rules`로 따로 배포해야 반영됩니다.
+- `/deploy-moneyduo`를 쓰면 [firestore.rules](firestore.rules) 변경분이 있을 때 push 전에 규칙도 함께 배포됩니다.
+- 직접 `git push`만 했다면 규칙은 반영되지 않으므로 `npm run deploy:rules`를 따로 실행해야 합니다.
 - 배포된 규칙은 만료되지 않습니다. (Firebase 기본 "테스트 모드" 규칙만 30일 후 만료)
 
 ## 📝 배운 점 / 개선 계획
