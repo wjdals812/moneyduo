@@ -127,8 +127,9 @@ const HomePage = () => {
           const userSnap = await getDoc(doc(db, "users", partnerUid));
           const p = userSnap.exists() ? (userSnap.data() as any) : null;
           setPartnerName(p?.displayName || "");
-        } catch (e: any) {
-          alert(`[파트너 정보 조회] ${e?.message ?? e}`);
+        } catch (e) {
+          // 참여/해제 도중에는 users.coupleId가 아직 안 바뀌어 일시적으로 거부될 수 있음 (참여 후 리스너 재연결 시 정상 조회)
+          console.warn("파트너 정보 조회 실패:", e);
         }
       } else {
         // 아직 파트너가 참여하지 않은 상태
@@ -238,21 +239,23 @@ const HomePage = () => {
                     if (!auth.currentUser) return;
                     const ok = confirm("커플 연결을 해제하시겠어요?");
                     if (!ok) return;
+                    const myUid = auth.currentUser.uid;
+                    // 서버 처리를 기다리지 않고 화면부터 즉시 해제 상태로 바꾼다
+                    setPartnerName("");
+                    setCoupleInfo(null);
+                    setInviteCode("");
+                    if (coupleUnsubRef.current) {
+                      coupleUnsubRef.current();
+                      coupleUnsubRef.current = null;
+                    }
                     try {
-                      await coupleService.leaveCouple(auth.currentUser.uid);
-                      // 상태 초기화
-                      setPartnerName("");
-                      setCoupleInfo(null);
-                      setInviteCode("");
-                      // 실시간 리스너도 해제
-                      if (coupleUnsubRef.current) {
-                        coupleUnsubRef.current();
-                        coupleUnsubRef.current = null;
-                      }
+                      await coupleService.leaveCouple(myUid);
                       alert("연결 해제되었습니다.");
                     } catch (e: any) {
                       alert(e.message || String(e));
                     }
+                    // 성공/실패 모두 서버 기준으로 내역과 커플 상태를 다시 불러온다 (파트너 내역 즉시 제거)
+                    loadTransactions(myUid, formatMonthKey(month));
                   }}
                   style={{
                     padding: "6px 10px", background: theme.surfaceMuted,
@@ -567,6 +570,7 @@ const HomePage = () => {
                       const result = await coupleService.joinByCode(auth.currentUser.uid, code);
                       // 참여 후 리스너 붙이기
                       attachCoupleListener(result.coupleId, auth.currentUser!.uid);
+                      loadTransactions(auth.currentUser!.uid, formatMonthKey(month)); // 파트너 내역 바로 반영
                       alert("참여되었습니다.");
                       setShowCoupleModal(false);
                     } catch (e: any) {
