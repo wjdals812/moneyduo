@@ -222,32 +222,22 @@ const ChartPage = () => {
         )}
 
         {/* 수입/지출 요약 */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "20px" }}>
-          <div
-            style={{
-              background: theme.surface,
-              color: theme.text,
-              padding: "16px",
-              borderRadius: theme.radiusMd,
-              textAlign: "center",
-              border: `1px solid ${theme.border}`,
-            }}
-          >
-            <p style={{ fontSize: "11px", fontWeight: 600, color: theme.textMuted, marginBottom: "6px" }}>수입</p>
-            <p style={{ fontSize: "17px", fontWeight: 700, color: theme.success, fontVariantNumeric: "tabular-nums" }}>₩{totalIncome.toLocaleString()}</p>
-          </div>
-          <div
-            style={{
-              background: theme.surface,
-              color: theme.text,
-              padding: "16px",
-              borderRadius: theme.radiusMd,
-              textAlign: "center",
-              border: `1px solid ${theme.border}`,
-            }}
-          >
-            <p style={{ fontSize: "11px", fontWeight: 600, color: theme.textMuted, marginBottom: "6px" }}>지출</p>
-            <p style={{ fontSize: "17px", fontWeight: 700, color: theme.danger, fontVariantNumeric: "tabular-nums" }}>₩{totalExpense.toLocaleString()}</p>
+        <div style={{ marginBottom: "20px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+            {[
+              { label: "수입", value: `+${totalIncome.toLocaleString()}`, color: theme.success },
+              { label: "지출", value: `-${totalExpense.toLocaleString()}`, color: theme.danger },
+            ].map((item, i) => (
+              <div key={i} style={{
+                display: "flex", flexDirection: "column", alignItems: "center",
+                padding: "7px 4px",
+                background: theme.surface, borderRadius: theme.radiusMd, border: `1px solid ${theme.border}`,
+              }}>
+                <span style={{ fontSize: "11px", color: theme.textMuted, fontWeight: 600, marginBottom: "4px" }}>{item.label}</span>
+                <span style={{ fontSize: "14px", fontWeight: 700, color: item.color, fontVariantNumeric: "tabular-nums" }}>{item.value}</span>
+                <span style={{ fontSize: "10px", fontWeight: 500, color: theme.textFaint, marginTop: "1px" }}>원</span>
+              </div>
+            ))}
           </div>
         </div>
 
