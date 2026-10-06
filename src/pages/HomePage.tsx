@@ -146,10 +146,12 @@ const HomePage = () => {
         try {
           const userSnap = await getDoc(doc(db, "users", partnerUid));
           const p = userSnap.exists() ? (userSnap.data() as any) : null;
-          setPartnerName(p?.displayName || "");
+          // 이름이 비어 있어도 파트너는 있으므로 "연결됨"이 보이도록 기본값 사용
+          setPartnerName(p?.displayName || "상대방");
         } catch (e) {
           // 참여/해제 도중에는 users.coupleId가 아직 안 바뀌어 일시적으로 거부될 수 있음 (참여 후 리스너 재연결 시 정상 조회)
           console.warn("파트너 정보 조회 실패:", e);
+          setPartnerName((prev) => prev || "상대방"); // 이름만 못 가져왔을 뿐 연결은 된 상태
         }
       } else {
         // 파트너가 아직 없거나, 있던 파트너가 연결을 해제한 상태
