@@ -6,7 +6,8 @@ import { getDoc, setDoc, doc } from "firebase/firestore";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import BottomNav from "../components/BottomNav";
 import MonthNavigator from "../components/MonthNavigator";
-import { fetchMonthTransactions } from "../services/transactionService";
+import { fetchMonthTransactions, getCachedMonth } from "../services/transactionService";
+import type { Transaction } from "../types/index";
 import { theme } from "../theme";
 
 interface CategoryStats {
@@ -60,58 +61,63 @@ const ChartPage = () => {
 
   const formatMonthKey = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 
+  // 내역 → 카테고리 통계 계산 후 반영 (캐시/서버 결과 공통)
+  const showStats = (transactions: Transaction[], selectedMonth: string) => {
+    // 선택된 월의 거래만 필터링
+    const monthTransactions = transactions.filter((t) =>
+      t.date.startsWith(selectedMonth)
+    );
+
+    // 지출과 수입 분리
+    const expenses = monthTransactions.filter((t) => t.type === "expense");
+    const incomes = monthTransactions.filter((t) => t.type === "income");
+
+    // 지출 통계
+    const expenseMap = new Map<string, number>();
+    expenses.forEach((t) => {
+      const current = expenseMap.get(t.category) || 0;
+      expenseMap.set(t.category, current + t.amount);
+    });
+
+    // 수입 통계
+    const incomeMap = new Map<string, number>();
+    incomes.forEach((t) => {
+      const current = incomeMap.get(t.category) || 0;
+      incomeMap.set(t.category, current + t.amount);
+    });
+
+    // 합계 계산
+    const totalExp = Array.from(expenseMap.values()).reduce((a, b) => a + b, 0);
+    const totalInc = Array.from(incomeMap.values()).reduce((a, b) => a + b, 0);
+
+    setTotalExpense(totalExp);
+    setTotalIncome(totalInc);
+
+    // 통계 데이터 포맷팅
+    const expenseStats: CategoryStats[] = Array.from(expenseMap).map(([category, amount]) => ({
+      category,
+      amount,
+      percentage: Math.round((amount / totalExp) * 100) || 0,
+    }));
+
+    const incomeStats: CategoryStats[] = Array.from(incomeMap).map(([category, amount]) => ({
+      category,
+      amount,
+      percentage: Math.round((amount / totalInc) * 100) || 0,
+    }));
+
+    setExpenseStats(expenseStats.sort((a, b) => b.amount - a.amount));
+    setIncomeStats(incomeStats.sort((a, b) => b.amount - a.amount));
+  };
+
   const loadChartData = async (userId: string, selectedMonth: string) => {
-    setLoading(true);
+    // 캐시가 있으면 로딩 화면 없이 즉시 표시하고 뒤에서 갱신
+    const cached = getCachedMonth(userId, selectedMonth);
+    if (cached) showStats(cached, selectedMonth);
+    else setLoading(true);
     setError(null);
     try {
-      // 내가 작성한 내역 + (커플 연결 중이면) 파트너가 작성한 내역까지 조회
-      const transactions = await fetchMonthTransactions(userId, selectedMonth);
-
-      // 선택된 월의 거래만 필터링
-      const monthTransactions = transactions.filter((t) =>
-        t.date.startsWith(selectedMonth)
-      );
-
-      // 지출과 수입 분리
-      const expenses = monthTransactions.filter((t) => t.type === "expense");
-      const incomes = monthTransactions.filter((t) => t.type === "income");
-
-      // 지출 통계
-      const expenseMap = new Map<string, number>();
-      expenses.forEach((t) => {
-        const current = expenseMap.get(t.category) || 0;
-        expenseMap.set(t.category, current + t.amount);
-      });
-
-      // 수입 통계
-      const incomeMap = new Map<string, number>();
-      incomes.forEach((t) => {
-        const current = incomeMap.get(t.category) || 0;
-        incomeMap.set(t.category, current + t.amount);
-      });
-
-      // 합계 계산
-      const totalExp = Array.from(expenseMap.values()).reduce((a, b) => a + b, 0);
-      const totalInc = Array.from(incomeMap.values()).reduce((a, b) => a + b, 0);
-
-      setTotalExpense(totalExp);
-      setTotalIncome(totalInc);
-
-      // 통계 데이터 포맷팅
-      const expenseStats: CategoryStats[] = Array.from(expenseMap).map(([category, amount]) => ({
-        category,
-        amount,
-        percentage: Math.round((amount / totalExp) * 100) || 0,
-      }));
-
-      const incomeStats: CategoryStats[] = Array.from(incomeMap).map(([category, amount]) => ({
-        category,
-        amount,
-        percentage: Math.round((amount / totalInc) * 100) || 0,
-      }));
-
-      setExpenseStats(expenseStats.sort((a, b) => b.amount - a.amount));
-      setIncomeStats(incomeStats.sort((a, b) => b.amount - a.amount));
+      showStats(await fetchMonthTransactions(userId, selectedMonth), selectedMonth);
     } catch (err) {
       console.error("차트 데이터 로드 실패:", err);
       setError(err instanceof Error ? `[${(err as any).code ?? "error"}] ${err.message}` : String(err));
@@ -132,7 +138,8 @@ const ChartPage = () => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        await Promise.all([loadChartData(user.uid, formatMonthKey(month)), loadBudget(user.uid)]);
+        loadBudget(user.uid).catch(console.error);
+        await loadChartData(user.uid, formatMonthKey(month));
       } else {
         navigate("/");
       }
