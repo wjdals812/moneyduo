@@ -26,6 +26,11 @@ describe('withAuth', () => {
     expect((await call({ method: 'POST', headers: {} })).code).toBe(401)
   })
 
+  it('서버 설정(서비스 계정)이 없으면 401이 아니라 500', async () => {
+    delete process.env.FIREBASE_SERVICE_ACCOUNT
+    expect((await call({ method: 'POST', headers: { authorization: 'Bearer abc' } })).code).toBe(500)
+  })
+
   it('Bearer 형식이 아니면 401', async () => {
     expect((await call({ method: 'POST', headers: { authorization: 'Basic abc' } })).code).toBe(401)
     expect((await call({ method: 'POST', headers: { authorization: 'Bearer ' } })).code).toBe(401)
