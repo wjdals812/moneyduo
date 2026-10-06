@@ -126,7 +126,7 @@ export async function getCoupleById(coupleId: string) {
   return { id: snap.id, ...snap.data() } as Record<string, any>;
 }
 
-export async function getMyCouple(currentUid: string) {
+export async function getMyCoupleId(currentUid: string) {
   let coupleId = coupleIdCache.get(currentUid);
   if (!coupleId) {
     const userSnap = await getDoc(doc(db, USERS_COL, currentUid));
@@ -134,8 +134,13 @@ export async function getMyCouple(currentUid: string) {
     if (!coupleId) return null;
     coupleIdCache.set(currentUid, coupleId);
   }
+  return coupleId;
+}
+
+export async function getMyCouple(currentUid: string) {
+  const coupleId = await getMyCoupleId(currentUid);
   // 커플 문서는 파트너가 바꿀 수 있으므로 캐시하지 않고 매번 조회
-  return getCoupleById(coupleId);
+  return coupleId ? getCoupleById(coupleId) : null;
 }
 
 export default {
@@ -145,4 +150,5 @@ export default {
   listenToCouple,
   getCoupleById,
   getMyCouple,
+  getMyCoupleId,
 };

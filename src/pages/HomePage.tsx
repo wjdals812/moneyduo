@@ -56,6 +56,7 @@ const HomePage = () => {
   const [totalIncome, setTotalIncome] = useState(0);           // 총 수입 합계
   const [loading, setLoading] = useState(true);                // Firebase 인증 응답 대기 중 여부
                                                                // (true일 때 로딩 화면 표시 → flash 방지)
+  const [uid, setUid] = useState<string | null>(null);
   const [month, setMonth] = useState<Date>(new Date());
   const [monthlyBudget, setMonthlyBudget] = useState<number | null>(null); // 내가 설정한 월 예산 (없으면 null)
 
@@ -76,19 +77,18 @@ const HomePage = () => {
     // 선택한 달만 서버에서 조회 (매번 300건씩 내려받지 않도록)
     const monthRange = [where("date", ">=", `${monthKey}-01`), where("date", "<=", `${monthKey}-31`)];
     try {
-      const myCouple = await coupleService.getMyCouple(userId);
+      // 커플 문서 조회는 생략: coupleId(캐시)만 있으면 내역 조회 가능, 커플 정보는 리스너가 비동기로 채움
+      const coupleId = await coupleService.getMyCoupleId(userId);
 
       let txData: Transaction[] = [];
 
-      if (myCouple && myCouple.members.length >= 2) {
-        setCoupleInfo(myCouple);
-        setInviteCode(myCouple.inviteCode ?? "");
-        attachCoupleListener(myCouple.id, userId);
+      if (coupleId) {
+        if (!coupleUnsubRef.current) attachCoupleListener(coupleId, userId);
 
         const [coupleSnap, soloSnap] = await Promise.all([
           getDocs(query(
             collection(db, "transactions"),
-            where("coupleId", "==", myCouple.id),
+            where("coupleId", "==", coupleId),
             ...monthRange,
             orderBy("date", "desc"), limit(300)
           )),
@@ -186,24 +186,20 @@ const HomePage = () => {
     // onAuthStateChanged: Firebase 인증 상태가 바뀔 때마다 콜백 실행
     // - 앱 첫 로드 시 로그인 여부 확인
     // - 로그인/로그아웃 시 자동 호출
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         // ── 로그인된 상태 ──
         setUserName(user.displayName || "");
-        // 내역과 예산 설정은 서로 의존하지 않으므로 병렬로 조회
-        const [, settingsSnap] = await Promise.all([
-          loadTransactions(user.uid, formatMonthKey(month)),
-          getDoc(doc(db, "userSettings", user.uid)),
-        ]);
-        setMonthlyBudget(settingsSnap.exists() ? (settingsSnap.data().monthlyBudget ?? null) : null);
-
+        setUid(user.uid);
+        // 예산은 화면 로딩을 막지 않고 도착하는 대로 반영
+        getDoc(doc(db, "userSettings", user.uid))
+          .then((s) => setMonthlyBudget(s.exists() ? (s.data().monthlyBudget ?? null) : null))
+          .catch(console.error);
       } else {
         // ── 비로그인 상태 → 로그인 페이지로 이동 ──
         navigate("/");
+        setLoading(false);
       }
-
-      // Firebase 응답이 완료됐으므로 로딩 종료 (에러가 나도 항상 실행되어야 함)
-      setLoading(false);
     });
 
     // 컴포넌트 언마운트 시 cleanup
@@ -213,7 +209,15 @@ const HomePage = () => {
       if (coupleUnsubRef.current) coupleUnsubRef.current();
       unsubscribe();
     };
-  }, [navigate, month]);
+  }, [navigate]);
+
+  // 월 변경 시에는 내역만 다시 조회 (인증/예산/커플 리스너는 재실행하지 않음)
+  useEffect(() => {
+    if (!uid) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadTransactions(uid, formatMonthKey(month)).finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [uid, month]);
 
   // ─────────────────────────────────────────────
   // ⏳ Firebase 인증 응답 대기 중 로딩 화면
