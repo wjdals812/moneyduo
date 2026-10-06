@@ -514,13 +514,10 @@ const HomePage = () => {
           2) 코드 입력 → 파트너의 커플에 참여
       ─────────────────────────────────────── */}
       {showCoupleModal && (
-        // 위쪽 정렬: 폰에서 입력창을 누르면 키보드가 올라와 가운데 모달의 버튼을 가리기 때문
-        <div style={{ position: "fixed", inset: 0, display: "flex", alignItems: "flex-start", justifyContent: "center", paddingTop: "12vh", zIndex: 40 }}>
+        <div style={{ position: "fixed", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 40 }}>
           {/* 백드롭 클릭 시 모달 닫기 */}
           <div onClick={() => setShowCoupleModal(false)} style={{ position: "absolute", inset: 0, background: "rgba(15, 23, 42, 0.5)" }} />
           <div style={{ background: theme.surface, width: "86%", maxWidth: "320px", borderRadius: 14, padding: "20px 16px 16px", zIndex: 41, boxShadow: "0 20px 40px rgba(15, 23, 42, 0.2)" }}>
-            <button onClick={() => setShowCoupleModal(false)} style={{ all: "unset", cursor: "pointer", color: theme.textFaint, position: "absolute", top: 14, right: 16, fontSize: 16 }}>✕</button>
-
             <div style={{ textAlign: "center", marginBottom: 18 }}>
               <div style={{ fontSize: 15, fontWeight: 700, color: theme.text }}>커플 연결하기</div>
               <div style={{ fontSize: 12, color: theme.textMuted, marginTop: 4 }}>초대 코드로 가계부를 함께 써요</div>
