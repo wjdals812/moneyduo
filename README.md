@@ -120,7 +120,7 @@ src/
 npm install
 npm run dev        # 개발 서버
 npm run build      # 타입 체크 + 빌드
-npm run test:rules # Firestore 보안 규칙 테스트 (Java 필요, 에뮬레이터 자동 실행)
+npm test           # 보안 규칙·서버 로직 테스트 (Java 필요, 에뮬레이터 자동 실행)
 ```
 
 `src/firebase.ts`의 Firebase 설정이 필요합니다.
