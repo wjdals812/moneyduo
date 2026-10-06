@@ -1,12 +1,8 @@
 import { db } from "../firebase";
 import {
-  addDoc,
   collection,
   updateDoc,
   doc,
-  query,
-  where,
-  getDocs,
   serverTimestamp,
   arrayUnion,
   arrayRemove,
@@ -19,6 +15,7 @@ import {
 
 const COUPLES_COL = "couples";
 const USERS_COL = "users";
+const INVITES_COL = "inviteCodes";
 
 // 내 coupleId 캐시 (화면 이동마다 users 문서를 다시 읽지 않기 위함). 생성/참여/탈퇴 시 무효화.
 const coupleIdCache = new Map<string, string>();
@@ -30,39 +27,34 @@ function generateCode(length = 6) {
   return out;
 }
 
-async function ensureUniqueCode() {
-  for (let i = 0; i < 6; i++) {
-    const code = generateCode();
-    const q = query(collection(db, COUPLES_COL), where("inviteCode", "==", code));
-    const snap = await getDocs(q);
-    if (snap.empty) return code;
-  }
-  // fallback
-  return generateCode(8);
-}
-
 export async function createCouple(currentUid: string) {
   coupleIdCache.delete(currentUid);
-  const inviteCode = await ensureUniqueCode();
-  const docRef = await addDoc(collection(db, COUPLES_COL), {
-    members: [currentUid],
-    inviteCode,
-    createdAt: serverTimestamp(),
-  });
+  const docRef = doc(collection(db, COUPLES_COL)); // ID만 먼저 확보
+  // inviteCodes/{코드} 문서로 코드→coupleId를 조회한다 (couples 쿼리는 규칙상 멤버만 가능).
+  // 규칙이 기존 문서 덮어쓰기를 막으므로 코드가 겹치면 실패 → 재시도
+  let inviteCode = "";
+  for (let i = 0; i < 6 && !inviteCode; i++) {
+    const code = generateCode();
+    try {
+      await setDoc(doc(db, INVITES_COL, code), { coupleId: docRef.id });
+      inviteCode = code;
+    } catch { /* 코드 중복 */ }
+  }
+  if (!inviteCode) throw new Error("초대 코드 생성에 실패했어요. 다시 시도해주세요.");
+  await setDoc(docRef, { members: [currentUid], inviteCode, createdAt: serverTimestamp() });
   await setDoc(doc(db, USERS_COL, currentUid), { coupleId: docRef.id }, { merge: true });
   return { coupleId: docRef.id, inviteCode };
 }
 
 export async function joinByCode(currentUid: string, code: string) {
   coupleIdCache.delete(currentUid);
-  const q = query(collection(db, COUPLES_COL), where("inviteCode", "==", code));
-  const snap = await getDocs(q);
-  if (snap.empty) throw new Error("유효하지 않은 코드입니다.");
+  const inviteSnap = await getDoc(doc(db, INVITES_COL, code));
+  if (!inviteSnap.exists()) throw new Error("유효하지 않은 코드입니다.");
 
   // 내가 만든 기존 커플 먼저 정리
   await leaveCouple(currentUid);
 
-  const coupleRef = snap.docs[0].ref;
+  const coupleRef = doc(db, COUPLES_COL, inviteSnap.data().coupleId);
   await runTransaction(db, async (tx) => {
     const coupleSnap = await tx.get(coupleRef);
     if (!coupleSnap.exists()) {

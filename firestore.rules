@@ -76,12 +76,22 @@ service cloud.firestore {
       allow read, update, delete: if isSignedIn() && request.auth.uid == resource.data.createdBy;
     }
 
+    // inviteCodes: 초대 코드 → coupleId 조회용. 코드를 아는 사람만 get 가능(목록 불가),
+    // 기존 코드 덮어쓰기/삭제 금지
+    match /inviteCodes/{code} {
+      allow get: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.coupleId is string;
+    }
+
     // couples: 읽기는 멤버만 가능. 생성은 본인만 멤버로 한 채로 허용.
     // 클라이언트에서 스스로 초대 코드로 참여하거나 탈퇴할 수 있도록 제한적으로 허용.
     match /couples/{coupleId} {
       // resource가 null(문서가 존재하지 않음)일 때 resource.data 참조 시 규칙 평가 자체가 오류로
       // 처리되어 permission-denied가 발생하므로, 없는 문서를 읽을 때도 안전하게 통과하도록 먼저 체크
-      allow read: if isSignedIn() && (resource == null || request.auth.uid in resource.data.members);
+      // 단건 조회(get)는 로그인 사용자 모두 허용: 초대 코드로 참여할 때 아직 멤버가 아니므로 필요.
+      // 문서 ID는 추측 불가능한 랜덤 값이고, 목록 조회(list)는 멤버만 가능
+      allow get: if isSignedIn();
+      allow list: if isSignedIn() && (resource == null || request.auth.uid in resource.data.members);
 
       allow create: if isSignedIn()
         && request.resource.data.members is list
