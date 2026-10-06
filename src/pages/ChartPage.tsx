@@ -234,7 +234,7 @@ const ChartPage = () => {
             }}
           >
             <p style={{ fontSize: "11px", fontWeight: 600, color: theme.textMuted, marginBottom: "6px" }}>수입</p>
-            <p style={{ fontSize: "17px", fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>₩{totalIncome.toLocaleString()}</p>
+            <p style={{ fontSize: "17px", fontWeight: 700, color: theme.success, fontVariantNumeric: "tabular-nums" }}>₩{totalIncome.toLocaleString()}</p>
           </div>
           <div
             style={{
@@ -247,7 +247,7 @@ const ChartPage = () => {
             }}
           >
             <p style={{ fontSize: "11px", fontWeight: 600, color: theme.textMuted, marginBottom: "6px" }}>지출</p>
-            <p style={{ fontSize: "17px", fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>₩{totalExpense.toLocaleString()}</p>
+            <p style={{ fontSize: "17px", fontWeight: 700, color: theme.danger, fontVariantNumeric: "tabular-nums" }}>₩{totalExpense.toLocaleString()}</p>
           </div>
         </div>
 
