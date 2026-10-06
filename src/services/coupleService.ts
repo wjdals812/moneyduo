@@ -76,9 +76,19 @@ export async function joinByCode(currentUid: string, code: string) {
   return { coupleId: coupleRef.id };
 }
 
-export async function leaveCouple(currentUid: string) {
+// known: 호출자가 이미 알고 있는 커플 정보(실시간 리스너 값). 주면 조회 2번을 건너뛰고 바로 쓴다.
+export async function leaveCouple(currentUid: string, known?: { coupleId: string; members: string[] }) {
   coupleIdCache.delete(currentUid);
   const userRef = doc(db, USERS_COL, currentUid);
+  if (known && known.members.includes(currentUid)) {
+    const batch = writeBatch(db);
+    const coupleRef = doc(db, COUPLES_COL, known.coupleId);
+    if (known.members.length === 1) batch.delete(coupleRef);
+    else batch.update(coupleRef, { members: arrayRemove(currentUid) });
+    batch.set(userRef, { coupleId: null }, { merge: true });
+    await batch.commit();
+    return;
+  }
   const userSnap = await getDoc(userRef);
   if (!userSnap.exists()) return;
   const data = userSnap.data() as any;

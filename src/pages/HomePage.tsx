@@ -52,7 +52,7 @@ const HomePage = () => {
   const [inputCode, setInputCode] = useState("");              // 파트너 초대 코드 입력값
   const [isJoining, setIsJoining] = useState(false);            // 참여 처리 중 (연타 방지)
   const [isCreating, setIsCreating] = useState(false);         // 초대 코드 생성 중 로딩 상태
-  const [, setCoupleInfo] = useState<any>(null);               // 커플 문서 데이터 (파트너 감지용)
+  const [coupleInfo, setCoupleInfo] = useState<any>(null);               // 커플 문서 데이터 (파트너 감지용)
   const [partnerName, setPartnerName] = useState("");          // 파트너 이름 (헤더에 표시)
   const [transactions, setTransactions] = useState<Transaction[]>([]); // 거래 내역 목록
   const [totalExpense, setTotalExpense] = useState(0);         // 총 지출 합계
@@ -261,6 +261,9 @@ const HomePage = () => {
                     const ok = confirm("커플 연결을 해제하시겠어요?");
                     if (!ok) return;
                     const myUid = auth.currentUser.uid;
+                    const known = coupleInfo?.id && Array.isArray(coupleInfo.members)
+                      ? { coupleId: coupleInfo.id as string, members: coupleInfo.members as string[] }
+                      : undefined; // 리스너가 가진 최신 커플 정보로 서버 조회 생략
                     // 서버 처리를 기다리지 않고 화면부터 즉시 해제 상태로 바꾼다
                     setPartnerName("");
                     setCoupleInfo(null);
@@ -271,13 +274,13 @@ const HomePage = () => {
                     }
                     leavingRef.current = (async () => {
                       try {
-                        await coupleService.leaveCouple(myUid);
+                        await coupleService.leaveCouple(myUid, known);
+                        loadTransactions(myUid, formatMonthKey(month)); // 알럿(화면 멈춤) 전에 내역 재조회 시작
                         alert("연결 해제되었습니다.");
                       } catch (e: any) {
+                        loadTransactions(myUid, formatMonthKey(month));
                         alert(e.message || String(e));
                       }
-                      // 성공/실패 모두 서버 기준으로 내역과 커플 상태를 다시 불러온다 (파트너 내역 즉시 제거)
-                      loadTransactions(myUid, formatMonthKey(month));
                     })();
                   }}
                   style={{
