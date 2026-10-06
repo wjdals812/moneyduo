@@ -266,6 +266,7 @@ const HomePage = () => {
                       : undefined; // 리스너가 가진 최신 커플 정보로 서버 조회 생략
                     // 서버 처리를 기다리지 않고 화면부터 즉시 해제 상태로 바꾼다
                     setPartnerName("");
+                    applyTransactions(transactions.filter((t) => t.createdBy === myUid)); // 파트너 내역도 즉시 제거
                     setCoupleInfo(null);
                     setInviteCode("");
                     if (coupleUnsubRef.current) {

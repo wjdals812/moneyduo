@@ -16,7 +16,7 @@ const USERS_COL = "users";
 const INVITES_COL = "inviteCodes";
 
 // 내 coupleId 캐시 (화면 이동마다 users 문서를 다시 읽지 않기 위함). 생성/참여/탈퇴 시 무효화.
-const coupleIdCache = new Map<string, string>();
+const coupleIdCache = new Map<string, string | null>(); // null = 커플 없음이 확정된 상태 (해제 직후 재조회 방지)
 
 // 어느 단계에서 권한 오류가 났는지 알 수 있도록 에러 메시지에 단계 이름을 붙인다
 const at = <T,>(label: string, p: Promise<T>) =>
@@ -31,23 +31,25 @@ function generateCode(length = 6) {
 
 export async function createCouple(currentUid: string) {
   coupleIdCache.delete(currentUid);
-  // 이전에 만든 커플이 남아 있으면 정리 (users.coupleId는 null일 때만 새 값으로 바뀔 수 있음)
-  await leaveCouple(currentUid);
+  // 이전에 만든 커플이 남아 있을 때만 정리 (users.coupleId는 null일 때만 새 값으로 바뀔 수 있음)
+  const mySnap = await getDoc(doc(db, USERS_COL, currentUid));
+  if ((mySnap.data() as any)?.coupleId) await leaveCouple(currentUid);
   const docRef = doc(collection(db, COUPLES_COL)); // ID만 먼저 확보
   // inviteCodes/{코드} 문서로 코드→coupleId를 조회한다 (couples 쿼리는 규칙상 멤버만 가능).
-  // 규칙이 기존 문서 덮어쓰기를 막으므로 코드가 겹치면 실패 → 재시도
-  let inviteCode = "";
-  for (let i = 0; i < 6 && !inviteCode; i++) {
-    const code = generateCode();
+  // 초대코드·커플·내 문서를 한 번에 커밋(왕복 1회). 규칙이 기존 코드 덮어쓰기를 막으므로 겹치면 전체 실패 → 새 코드로 재시도
+  for (let i = 0; i < 6; i++) {
+    const inviteCode = generateCode();
+    const batch = writeBatch(db);
+    batch.set(doc(db, INVITES_COL, inviteCode), { coupleId: docRef.id });
+    batch.set(docRef, { members: [currentUid], inviteCode, createdAt: serverTimestamp() });
+    batch.set(doc(db, USERS_COL, currentUid), { coupleId: docRef.id }, { merge: true });
     try {
-      await setDoc(doc(db, INVITES_COL, code), { coupleId: docRef.id });
-      inviteCode = code;
-    } catch { /* 코드 중복 */ }
+      await batch.commit();
+    } catch { continue; /* 코드 중복 */ }
+    coupleIdCache.set(currentUid, docRef.id);
+    return { coupleId: docRef.id, inviteCode };
   }
-  if (!inviteCode) throw new Error("초대 코드 생성에 실패했어요. 다시 시도해주세요.");
-  await setDoc(docRef, { members: [currentUid], inviteCode, createdAt: serverTimestamp() });
-  await setDoc(doc(db, USERS_COL, currentUid), { coupleId: docRef.id }, { merge: true });
-  return { coupleId: docRef.id, inviteCode };
+  throw new Error("초대 코드 생성에 실패했어요. 다시 시도해주세요.");
 }
 
 export async function joinByCode(currentUid: string, code: string) {
@@ -72,6 +74,7 @@ export async function joinByCode(currentUid: string, code: string) {
   }
   batch.set(doc(db, USERS_COL, currentUid), { coupleId: coupleRef.id }, { merge: true });
   await at("참여 처리", batch.commit());
+  coupleIdCache.set(currentUid, coupleRef.id); // 이후 내역 조회가 내 문서를 다시 읽지 않도록
 
   return { coupleId: coupleRef.id };
 }
@@ -87,6 +90,7 @@ export async function leaveCouple(currentUid: string, known?: { coupleId: string
     else batch.update(coupleRef, { members: arrayRemove(currentUid) });
     batch.set(userRef, { coupleId: null }, { merge: true });
     await batch.commit();
+    coupleIdCache.set(currentUid, null);
     return;
   }
   const userSnap = await getDoc(userRef);
@@ -136,13 +140,10 @@ export async function getCoupleById(coupleId: string) {
 }
 
 export async function getMyCoupleId(currentUid: string) {
-  let coupleId = coupleIdCache.get(currentUid);
-  if (!coupleId) {
-    const userSnap = await getDoc(doc(db, USERS_COL, currentUid));
-    coupleId = (userSnap.data() as any)?.coupleId;
-    if (!coupleId) return null;
-    coupleIdCache.set(currentUid, coupleId);
-  }
+  if (coupleIdCache.has(currentUid)) return coupleIdCache.get(currentUid) ?? null;
+  const userSnap = await getDoc(doc(db, USERS_COL, currentUid));
+  const coupleId: string | null = (userSnap.data() as any)?.coupleId ?? null;
+  if (coupleId) coupleIdCache.set(currentUid, coupleId);
   return coupleId;
 }
 
