@@ -455,8 +455,8 @@ const HomePage = () => {
         onClick={() => navigate("/add")}
         style={{
           position: "fixed",
-          bottom: "calc(env(safe-area-inset-bottom) + 64px)", right: "calc(50% - 184px)",
-          width: "48px", height: "48px",
+          bottom: "calc(env(safe-area-inset-bottom) + 76px)", right: "calc(50% - 184px)",
+          width: "40px", height: "40px",
           borderRadius: theme.radiusMd,
           background: theme.accent,
           border: "none",
@@ -467,7 +467,7 @@ const HomePage = () => {
           zIndex: 10,
         }}
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
           <line x1="12" y1="5" x2="12" y2="19" />
           <line x1="5" y1="12" x2="19" y2="12" />
         </svg>
