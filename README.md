@@ -51,6 +51,7 @@
 | 스타일     | Tailwind CSS                      | 모바일 중심 UI를 빠르게 구성        |
 | 인증/DB    | Firebase Auth, Firestore          | 서버 없이 실시간 동기화와 인증 해결 |
 | 서버       | Vercel 서버리스 함수 + Firebase Admin SDK | 커플 연결 로직과 권한 검증을 서버로 이전 |
+| 상태 관리  | Zustand                           | 인증·사용자 설정처럼 여러 페이지가 공유하는 상태를 한 곳에서 관리 |
 | 차트       | Recharts                          | React 컴포넌트로 선언적 구성        |
 | 배포       | Vercel (`main` push 시 자동 배포) | CI/CD 설정 불필요                   |
 
@@ -116,6 +117,7 @@ api/
 src/
 ├─ pages/        화면 (홈, 차트, 일정, 입력/수정, 마이페이지 …)
 ├─ components/   공통 컴포넌트 (하단 네비게이션, 월 이동)
+├─ stores/       Zustand 스토어 (authStore, settingsStore)
 ├─ services/     Firestore 접근 (coupleService, transactionService)
 ├─ types/        공통 타입
 └─ firebase.ts   Firebase 초기화
@@ -147,4 +149,6 @@ npm test           # 보안 규칙·서버 로직 테스트 (Java 필요, 에뮬
 - 보안 규칙은 "필드가 없을 때"까지 고려해야 한다는 점을 배웠습니다.
 - 클라이언트만으로는 커플 가입 같은 권한 로직에 한계가 있어, 서버 API(Vercel 서버리스 + Admin SDK)로 옮기고 규칙에서 클라이언트 쓰기를 막았습니다.
 - 배포 환경 차이도 겪었습니다. 로컬 Node에서는 되던 `firebase-admin`이 Vercel 런타임에서 ESM 의존성 오류로 죽어, 원인(`jwks-rsa` → `jose`)을 로그에서 찾아 버전을 낮춰 해결했습니다.
+- 페이지마다 `onAuthStateChanged`와 `userSettings` 조회를 따로 하던 중복을 Zustand 스토어 두 개로 모았습니다. `authStore`는 앱 전체에서 인증 구독을 한 번만 하고, `settingsStore`는 로그인할 때 설정을 한 번 읽어 모든 페이지가 공유합니다. 새로고침으로 `/add`에 바로 들어오면 인증 복원 전이라 카테고리와 커플 ID를 못 불러오던 문제도 함께 해결됐습니다.
+- Zustand를 거래 내역 같은 서버 데이터에는 쓰지 않았습니다. 캐싱·갱신을 직접 구현해야 해서, 그런 데이터는 React Query가 더 맞다고 판단했습니다(같은 시기에 Twogether에서 적용). 아직 `MyPage`, `SchedulePage`, `TransactionPage`는 인증을 직접 구독합니다.
 - 개선 예정: 예산 초과 알림, 거래 내역 검색, 거래 내역 실시간 갱신
