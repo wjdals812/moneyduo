@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { db, auth } from "../firebase";
+import { useSettingsStore, saveSettings } from "../stores/settingsStore";
 import { theme } from "../theme";
 
 interface Props {
@@ -14,42 +13,19 @@ interface Props {
 
 const ListManagePage = ({ title, fieldName, defaultItems, placeholder, addLabel }: Props) => {
   const navigate = useNavigate();
-  const [items, setItems] = useState<string[]>(defaultItems);
+  const items = (useSettingsStore((s) => s.settings[fieldName]) as string[] | undefined) ?? defaultItems;
   const [newItem, setNewItem] = useState("");
   const [showInput, setShowInput] = useState(false);
 
-  useEffect(() => {
-    const fetchItems = async () => {
-      const uid = auth.currentUser?.uid;
-      if (!uid) return;
-      const ref = doc(db, "userSettings", uid);
-      const snapshot = await getDoc(ref);
-      if (snapshot.exists() && snapshot.data()[fieldName]) {
-        setItems(snapshot.data()[fieldName]);
-      }
-    };
-    fetchItems();
-  }, [fieldName]);
-
-  const save = async (updated: string[]) => {
-    const uid = auth.currentUser?.uid;
-    if (!uid) return;
-    await setDoc(doc(db, "userSettings", uid), { [fieldName]: updated }, { merge: true });
-  };
-
   const handleAdd = async () => {
     if (!newItem.trim()) return;
-    const updated = [...items, newItem];
-    setItems(updated);
-    await save(updated);
+    await saveSettings({ [fieldName]: [...items, newItem] });
     setNewItem("");
     setShowInput(false);
   };
 
   const handleDelete = async (item: string) => {
-    const updated = items.filter((i) => i !== item);
-    setItems(updated);
-    await save(updated);
+    await saveSettings({ [fieldName]: items.filter((i) => i !== item) });
   };
 
   return (

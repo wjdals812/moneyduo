@@ -1,5 +1,6 @@
-import { signInWithPopup, signInAnonymously, onAuthStateChanged } from "firebase/auth";
+import { signInWithPopup, signInAnonymously } from "firebase/auth";
 import { auth, provider, db } from "../firebase";
+import { useAuthStore } from "../stores/authStore";
 import { useNavigate } from "react-router-dom";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { useEffect } from "react";
@@ -7,12 +8,10 @@ import { theme } from "../theme";
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const uid = useAuthStore((s) => s.uid);
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) navigate("/home");
-    });
-    return () => unsubscribe();
-  }, [navigate]);
+    if (uid) navigate("/home");
+  }, [uid, navigate]);
 
   const ensureUserDoc = async (user: { uid: string; displayName: string | null; email: string | null }, defaultName = "") => {
     const userRef = doc(db, "users", user.uid);

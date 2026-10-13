@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { collection, addDoc, doc, getDoc } from "firebase/firestore";
+import { collection, addDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import coupleService from "../services/coupleService";
 import { useAuthStore } from "../stores/authStore";
+import { useSettingsStore } from "../stores/settingsStore";
 import { theme } from "../theme";
 
 const AddTransactionPage = () => {
@@ -17,30 +18,14 @@ const AddTransactionPage = () => {
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
 
   const defaultCategories = ["🍜 식비", "☕ 카페", "🎬 문화", "🚌 교통", "🛍️ 쇼핑", "💊 의료", "🏠 생활", "💑 데이트", "기타"];
-  const [categories, setCategories] = useState<string[]>(defaultCategories);
-  const [paymentMethods, setPaymentMethods] = useState<string[]>(["현금", "카드"]);
+  const categories = useSettingsStore((s) => s.settings.categories) ?? defaultCategories;
+  const paymentMethods = useSettingsStore((s) => s.settings.paymentMethods) ?? ["현금", "카드"];
   const [coupleId, setCoupleId] = useState<string | null>(null);
 
   const uid = useAuthStore((s) => s.uid);
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (!uid) return;
-
-      // 카테고리 불러오기
-      const ref = doc(db, "userSettings", uid);
-      const snapshot = await getDoc(ref);
-      if (snapshot.exists() && snapshot.data().categories) {
-        setCategories(snapshot.data().categories);
-      }
-      if (snapshot.exists() && snapshot.data().paymentMethods) {
-        setPaymentMethods(snapshot.data().paymentMethods);
-      }
-
-      // coupleId 불러오기
-      setCoupleId(await coupleService.getMyCoupleId(uid));
-    };
-    fetchData();
+    if (uid) coupleService.getMyCoupleId(uid).then(setCoupleId).catch((e) => console.error("커플 조회 실패:", e));
   }, [uid]);
 
   const handleSubmit = async () => {

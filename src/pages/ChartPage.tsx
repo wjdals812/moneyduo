@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { db } from "../firebase";
 import { useAuthStore } from "../stores/authStore";
-import { getDoc, setDoc, doc } from "firebase/firestore";
+import { useSettingsStore, saveSettings } from "../stores/settingsStore";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import BottomNav from "../components/BottomNav";
 import MonthNavigator from "../components/MonthNavigator";
@@ -44,6 +43,8 @@ const renderCustomLabel = (props: any, data: CategoryStats[]) => {
   );
 };
 
+const NO_BUDGETS: Record<string, number> = {};
+
 const ChartPage = () => {
   const navigate = useNavigate();
   const uid = useAuthStore((s) => s.uid);
@@ -54,8 +55,8 @@ const ChartPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [month, setMonth] = useState<Date>(new Date());
-  const [monthlyBudget, setMonthlyBudget] = useState<number | null>(null);
-  const [categoryBudgets, setCategoryBudgets] = useState<Record<string, number>>({});
+  const monthlyBudget = useSettingsStore((s) => s.settings.monthlyBudget) ?? null;
+  const categoryBudgets = useSettingsStore((s) => s.settings.categoryBudgets) ?? NO_BUDGETS;
   const [showBudgetForm, setShowBudgetForm] = useState(false);
   const [budgetInput, setBudgetInput] = useState("");
   const [categoryBudgetInputs, setCategoryBudgetInputs] = useState<Record<string, string>>({});
@@ -127,15 +128,6 @@ const ChartPage = () => {
     }
   };
 
-  const loadBudget = async (userId: string) => {
-    const snap = await getDoc(doc(db, "userSettings", userId));
-    if (snap.exists()) {
-      const data = snap.data();
-      setMonthlyBudget(data.monthlyBudget ?? null);
-      setCategoryBudgets(data.categoryBudgets ?? {});
-    }
-  };
-
   useEffect(() => {
     if (uid === undefined) return; // 인증 복원 대기
     if (uid === null) {
@@ -143,7 +135,6 @@ const ChartPage = () => {
       return;
     }
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadBudget(uid).catch(console.error);
     loadChartData(uid, formatMonthKey(month));
   }, [navigate, month, uid]);
 
@@ -164,9 +155,7 @@ const ChartPage = () => {
     for (const [cat, val] of Object.entries(categoryBudgetInputs)) {
       if (val.trim()) perCategory[cat] = Number(val);
     }
-    await setDoc(doc(db, "userSettings", uid), { monthlyBudget: overall, categoryBudgets: perCategory }, { merge: true });
-    setMonthlyBudget(overall);
-    setCategoryBudgets(perCategory);
+    await saveSettings({ monthlyBudget: overall, categoryBudgets: perCategory });
     setShowBudgetForm(false);
   };
 

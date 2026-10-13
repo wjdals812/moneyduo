@@ -1,8 +1,9 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../firebase";
-import { onAuthStateChanged } from "firebase/auth";
 import coupleService from "../services/coupleService";
+import { useAuthStore } from "../stores/authStore";
+import { useSettingsStore } from "../stores/settingsStore";
 import { getDoc, doc } from "firebase/firestore";
 import { fetchMonthTransactions, getCachedMonth } from "../services/transactionService";
 import BottomNav from "../components/BottomNav";
@@ -48,7 +49,6 @@ const HomePage = () => {
   const navigate = useNavigate();
 
   // ── 상태 선언 ──────────────────────────────
-  const [, setUserName] = useState("");                        // 로그인한 유저 이름 (UI에 직접 표시 안 함)
   const [showCoupleModal, setShowCoupleModal] = useState(false); // 커플 연결 모달 표시 여부
   const [coupleTab, setCoupleTab] = useState<"create" | "join">("create"); // 모달 탭
   const [inviteCode, setInviteCode] = useState("");          // 내가 생성한 초대 코드
@@ -61,9 +61,9 @@ const HomePage = () => {
   const [totalIncome, setTotalIncome] = useState(0);           // 총 수입 합계
   const [loading, setLoading] = useState(true);                // Firebase 인증 응답 대기 중 여부
                                                                // (true일 때 로딩 화면 표시 → flash 방지)
-  const [uid, setUid] = useState<string | null>(auth.currentUser?.uid ?? null); // 이미 로그인된 상태면 인증 콜백을 기다리지 않고 바로 조회
+  const uid = useAuthStore((s) => s.uid);
   const [month, setMonth] = useState<Date>(new Date());
-  const [monthlyBudget, setMonthlyBudget] = useState<number | null>(null); // 내가 설정한 월 예산 (없으면 null)
+  const monthlyBudget = useSettingsStore((s) => s.settings.monthlyBudget) ?? null; // 내가 설정한 월 예산 (없으면 null)
 
   // ── Refs ───────────────────────────────────
   // 커플 문서 실시간 리스너의 해제 함수를 저장
@@ -164,34 +164,18 @@ const HomePage = () => {
   // ─────────────────────────────────────────────
   // 🔥 컴포넌트 마운트 시 Firebase 인증 상태 감지 + 데이터 로딩
   // ─────────────────────────────────────────────
+  // 인증 상태(uid)는 authStore가 관리: undefined = 복원 대기, null = 비로그인 → 로그인 페이지로 이동
   useEffect(() => {
-    // onAuthStateChanged: Firebase 인증 상태가 바뀔 때마다 콜백 실행
-    // - 앱 첫 로드 시 로그인 여부 확인
-    // - 로그인/로그아웃 시 자동 호출
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // ── 로그인된 상태 ──
-        setUserName(user.displayName || "");
-        setUid(user.uid);
-        // 예산은 화면 로딩을 막지 않고 도착하는 대로 반영
-        getDoc(doc(db, "userSettings", user.uid))
-          .then((s) => setMonthlyBudget(s.exists() ? (s.data().monthlyBudget ?? null) : null))
-          .catch(console.error);
-      } else {
-        // ── 비로그인 상태 → 로그인 페이지로 이동 ──
-        navigate("/");
-        setLoading(false);
-      }
-    });
+    if (uid !== null) return;
+    navigate("/");
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(false);
+  }, [uid, navigate]);
 
-    // 컴포넌트 언마운트 시 cleanup
-    // - 커플 실시간 리스너 해제
-    // - onAuthStateChanged 리스너 해제
-    return () => {
-      if (coupleUnsubRef.current) coupleUnsubRef.current();
-      unsubscribe();
-    };
-  }, [navigate]);
+  // 언마운트 시 커플 실시간 리스너 해제
+  useEffect(() => () => {
+    if (coupleUnsubRef.current) coupleUnsubRef.current();
+  }, []);
 
   // 월 변경 시에는 내역만 다시 조회 (인증/예산/커플 리스너는 재실행하지 않음)
   useEffect(() => {

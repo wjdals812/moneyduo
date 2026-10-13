@@ -4,19 +4,20 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import coupleService from "../services/coupleService";
 import { useAuthStore } from "../stores/authStore";
+import { useSettingsStore } from "../stores/settingsStore";
 import { theme } from "../theme";
 
 const EditTransactionPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const defaultCategories = ["🍜 식비", "☕ 카페", "🎬 문화", "🚌 교통", "🛍️ 쇼핑", "💊 의료", "🏠 생활", "💑 데이트", "기타"];
-  const [categories, setCategories] = useState<string[]>(defaultCategories);
+  const categories = useSettingsStore((s) => s.settings.categories) ?? defaultCategories;
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("🍜 식비");
   const [paidBy, setPaidBy] = useState<"me" | "partner" | "together">("me");
   const [paymentMethod, setPaymentMethod] = useState("카드");
-  const [paymentMethods, setPaymentMethods] = useState<string[]>(["현금", "카드"]);
+  const paymentMethods = useSettingsStore((s) => s.settings.paymentMethods) ?? ["현금", "카드"];
   const [type, setType] = useState<"expense" | "income">("expense");
   const [date, setDate] = useState("");
   const [coupleId, setCoupleId] = useState<string | null>(null);
@@ -46,19 +47,8 @@ const EditTransactionPage = () => {
       }
     };
 
-    const fetchSettings = async (uid: string) => {
-      try {
-        const snapshot = await getDoc(doc(db, "userSettings", uid));
-        if (snapshot.exists() && snapshot.data().categories) setCategories(snapshot.data().categories);
-        if (snapshot.exists() && snapshot.data().paymentMethods) setPaymentMethods(snapshot.data().paymentMethods);
-      } catch (error) {
-        console.error("설정 불러오기 실패:", error);
-      }
-    };
-
     const fetchData = (uid: string) => {
       fetchTransaction();
-      fetchSettings(uid);
       coupleService.getMyCoupleId(uid).then(setCoupleId).catch((e) => console.error("커플 조회 실패:", e));
     };
     // 새로고침/직접 진입 시 uid는 인증 복원 전까지 undefined이므로 값이 생길 때까지 기다린다
