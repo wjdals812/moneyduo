@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { db, auth } from "../firebase";
+import { db } from "../firebase";
 import coupleService from "../services/coupleService";
+import { useAuthStore } from "../stores/authStore";
 import { theme } from "../theme";
 
 const EditTransactionPage = () => {
@@ -20,6 +20,7 @@ const EditTransactionPage = () => {
   const [type, setType] = useState<"expense" | "income">("expense");
   const [date, setDate] = useState("");
   const [coupleId, setCoupleId] = useState<string | null>(null);
+  const uid = useAuthStore((s) => s.uid);
 
   useEffect(() => {
     // 기존 내역이 핵심이므로 설정/커플 조회와 병렬로, 서로 실패에 영향받지 않게 불러온다
@@ -60,12 +61,9 @@ const EditTransactionPage = () => {
       fetchSettings(uid);
       coupleService.getMyCoupleId(uid).then(setCoupleId).catch((e) => console.error("커플 조회 실패:", e));
     };
-    // 새로고침/직접 진입 시 auth.currentUser가 null이므로 인증 복원을 기다린다
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) fetchData(user.uid);
-    });
-    return () => unsubscribe();
-  }, [id]);
+    // 새로고침/직접 진입 시 uid는 인증 복원 전까지 undefined이므로 값이 생길 때까지 기다린다
+    if (uid) fetchData(uid);
+  }, [id, uid]);
 
   const handleUpdate = async () => {
     if (!amount || !description) {

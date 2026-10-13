@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth, db } from "../firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { db } from "../firebase";
+import { useAuthStore } from "../stores/authStore";
 import { getDoc, setDoc, doc } from "firebase/firestore";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import BottomNav from "../components/BottomNav";
@@ -46,6 +46,7 @@ const renderCustomLabel = (props: any, data: CategoryStats[]) => {
 
 const ChartPage = () => {
   const navigate = useNavigate();
+  const uid = useAuthStore((s) => s.uid);
   const [expenseStats, setExpenseStats] = useState<CategoryStats[]>([]);
   const [incomeStats, setIncomeStats] = useState<CategoryStats[]>([]);
   const [totalExpense, setTotalExpense] = useState(0);
@@ -136,16 +137,15 @@ const ChartPage = () => {
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        loadBudget(user.uid).catch(console.error);
-        await loadChartData(user.uid, formatMonthKey(month));
-      } else {
-        navigate("/");
-      }
-    });
-    return () => unsubscribe();
-  }, [navigate, month]);
+    if (uid === undefined) return; // 인증 복원 대기
+    if (uid === null) {
+      navigate("/");
+      return;
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadBudget(uid).catch(console.error);
+    loadChartData(uid, formatMonthKey(month));
+  }, [navigate, month, uid]);
 
   const openBudgetForm = () => {
     setBudgetInput(monthlyBudget != null ? String(monthlyBudget) : "");
@@ -158,7 +158,6 @@ const ChartPage = () => {
   };
 
   const saveBudget = async () => {
-    const uid = auth.currentUser?.uid;
     if (!uid) return;
     const overall = budgetInput.trim() ? Number(budgetInput) : null;
     const perCategory: Record<string, number> = {};

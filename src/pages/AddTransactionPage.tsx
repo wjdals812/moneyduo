@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { collection, addDoc, doc, getDoc } from "firebase/firestore";
-import { db, auth } from "../firebase";
+import { db } from "../firebase";
 import coupleService from "../services/coupleService";
+import { useAuthStore } from "../stores/authStore";
 import { theme } from "../theme";
 
 const AddTransactionPage = () => {
@@ -20,9 +21,10 @@ const AddTransactionPage = () => {
   const [paymentMethods, setPaymentMethods] = useState<string[]>(["현금", "카드"]);
   const [coupleId, setCoupleId] = useState<string | null>(null);
 
+  const uid = useAuthStore((s) => s.uid);
+
   useEffect(() => {
     const fetchData = async () => {
-      const uid = auth.currentUser?.uid;
       if (!uid) return;
 
       // 카테고리 불러오기
@@ -39,7 +41,7 @@ const AddTransactionPage = () => {
       setCoupleId(await coupleService.getMyCoupleId(uid));
     };
     fetchData();
-  }, []);
+  }, [uid]);
 
   const handleSubmit = async () => {
     if (!amount || !description) {
@@ -55,7 +57,7 @@ const AddTransactionPage = () => {
         paymentMethod,
         type,
         date,
-        createdBy: auth.currentUser?.uid,
+        createdBy: uid,
         coupleId: coupleId ?? null, // ✅ coupleId 저장
         createdAt: new Date(),
       });
