@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      # the Firestore emulator needs Java
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+      # `npm test` calls the firebase CLI, which is not a project dependency
+      - run: npm install -g firebase-tools
+      # build runs the type check (tsc -b) first
+      - run: npm run build
+      # rules and server logic tests against the Firestore emulator
+      - run: npm test
+      # ponytail: `npm run lint` is not run yet, it has existing no-explicit-any errors; add it once those are fixed
