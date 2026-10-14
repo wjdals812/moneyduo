@@ -6,7 +6,7 @@ export const theme = {
   borderStrong: "#cbd5e1",
   text: "#0f172a",
   textMuted: "#64748b",
-  textFaint: "#94a3b8",
+  textFaint: "#66758b",
   accent: "#4f46e5",
   accentHover: "#4338ca",
   accentMuted: "#eef2ff",

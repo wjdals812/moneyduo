@@ -14,19 +14,21 @@ const SchedulePage = lazy(() => import("./pages/SchedulePage"));
 const App = () => {
   return (
     <BrowserRouter>
-      <Suspense fallback={null}>
-        <Routes>
-          <Route path="/" element={<LoginPage />} />
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/chart" element={<ChartPage />} />
-          <Route path="/add" element={<AddTransactionPage />} />
-          <Route path="/edit/:id" element={<EditTransactionPage />} />
-          <Route path="/categories" element={<CategoriesPage />} />
-          <Route path="/paymentmethods" element={<PaymentMethodsPage />} />
-          <Route path="/mypage" element={<MyPage />} />
-          <Route path="/calendar" element={<SchedulePage />} />
-        </Routes>
-      </Suspense>
+      <main>
+        <Suspense fallback={null}>
+          <Routes>
+            <Route path="/" element={<LoginPage />} />
+            <Route path="/home" element={<HomePage />} />
+            <Route path="/chart" element={<ChartPage />} />
+            <Route path="/add" element={<AddTransactionPage />} />
+            <Route path="/edit/:id" element={<EditTransactionPage />} />
+            <Route path="/categories" element={<CategoriesPage />} />
+            <Route path="/paymentmethods" element={<PaymentMethodsPage />} />
+            <Route path="/mypage" element={<MyPage />} />
+            <Route path="/calendar" element={<SchedulePage />} />
+          </Routes>
+        </Suspense>
+      </main>
     </BrowserRouter>
   );
 };

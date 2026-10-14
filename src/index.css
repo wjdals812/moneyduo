@@ -15,6 +15,13 @@ button {
   font-family: inherit;
 }
 
+/* 확대 제한(maximum-scale)을 뺐으므로, iOS가 16px 미만 입력 칸에 포커스할 때 화면을 확대하지 않도록 터치 기기에서는 16px 이상으로 맞춘다 */
+@media (pointer: coarse) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
 .recharts-wrapper :focus {
   outline: none;
 }
