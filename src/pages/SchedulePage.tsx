@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { useAuthStore } from "../stores/authStore";
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
 import BottomNav from "../components/BottomNav";
 import { theme } from "../theme";
@@ -47,20 +47,21 @@ const SchedulePage = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [focusedDate, setFocusedDate] = useState("");
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) await loadData(user.uid);
-      else navigate("/");
-    });
-    return () => unsubscribe();
-  }, [navigate]);
+  const uid = useAuthStore((s) => s.uid);
 
-  const loadData = async (uid: string) => {
-    const q = query(collection(db, "schedules"), where("createdBy", "==", uid));
+  const loadData = async (userId: string) => {
+    const q = query(collection(db, "schedules"), where("createdBy", "==", userId));
     const snap = await getDocs(q);
     const data = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as Schedule[];
     setSchedules(data.sort((a, b) => a.date.localeCompare(b.date)));
   };
+
+  // uid가 undefined인 동안은 인증 복원 대기, null이면 비로그인
+  useEffect(() => {
+    if (uid === null) navigate("/");
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    else if (uid) loadData(uid);
+  }, [uid, navigate]);
 
   const handleAdd = async () => {
     if (!title || !selectedDate) return alert("제목과 날짜를 입력해주세요.");

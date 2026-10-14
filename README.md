@@ -152,10 +152,10 @@ npm test           # 보안 규칙·서버 로직 테스트 (Java 필요, 에뮬
 - 클라이언트만으로는 커플 가입 같은 권한 로직에 한계가 있어, 서버 API(Vercel 서버리스 + Admin SDK)로 옮기고 규칙에서 클라이언트 쓰기를 막았습니다.
 - 배포 환경 차이도 겪었습니다. 로컬 Node에서는 되던 `firebase-admin`이 Vercel 런타임에서 ESM 의존성 오류로 죽어, 원인(`jwks-rsa` → `jose`)을 로그에서 찾아 버전을 낮춰 해결했습니다.
 - 페이지마다 `onAuthStateChanged`와 `userSettings` 조회를 따로 하던 중복을 Zustand 스토어 두 개로 모았습니다. `authStore`는 앱 전체에서 인증 구독을 한 번만 하고, `settingsStore`는 로그인할 때 설정을 한 번 읽어 모든 페이지가 공유합니다. 새로고침으로 `/add`에 바로 들어오면 인증 복원 전이라 카테고리와 커플 ID를 못 불러오던 문제도 함께 해결됐습니다.
-- Zustand를 거래 내역 같은 서버 데이터에는 쓰지 않았습니다. 캐싱·갱신을 직접 구현해야 해서, 그런 데이터는 React Query가 더 맞다고 판단했습니다(같은 시기에 Twogether에서 적용). 아직 `MyPage`, `SchedulePage`, `TransactionPage`는 인증을 직접 구독합니다.
+- Zustand를 거래 내역 같은 서버 데이터에는 쓰지 않았습니다. 캐싱·갱신을 직접 구현해야 해서, 그런 데이터는 React Query가 더 맞다고 판단했습니다(같은 시기에 Twogether에서 적용). 아직 `MyPage`, `TransactionPage`는 인증을 직접 구독합니다.
 - Lighthouse(모바일, 배포 사이트의 로그인 화면)로 접근성과 SEO를 점검해 고쳤습니다. 접근성 74점에서 100점, SEO 82점에서 100점이 됐습니다.
   - 확대를 막던 `maximum-scale=1.0`을 제거했고, 그 대신 iOS가 16px 미만 입력 칸을 누를 때 화면을 확대하지 않도록 터치 기기에서는 입력 글자를 16px로 맞췄습니다.
   - `<main>` 영역 표시 추가, 회색 보조 글자색 대비 개선(2.56에서 4.69), `lang="ko"`, `meta description`, `robots.txt` 추가(SPA 폴백이 `robots.txt` 요청에도 HTML을 돌려주던 문제).
   - 번들(메인 약 608kB)은 대부분 React와 Firebase(Firestore, Auth)라서 줄일 여지가 작다고 분석했고, 감량은 하지 않았습니다. 성능 점수는 측정할 때마다 65~96으로 크게 흔들려 개선 성과로 적지 않았습니다.
-- GitHub Actions CI를 붙여 push마다 빌드(타입 검사 포함)와 Firestore 에뮬레이터 기반 테스트(규칙과 서버 로직, 47개)를 자동으로 돌립니다. 린트는 기존 `no-explicit-any` 오류가 남아 있어 아직 포함하지 않았고, 정리한 뒤 추가할 예정입니다.
+- GitHub Actions CI를 붙여 push마다 린트, 빌드(타입 검사 포함), Firestore 에뮬레이터 기반 테스트(규칙과 서버 로직, 47개)를 자동으로 돌립니다. 린트에 남아 있던 `no-explicit-any` 오류는 `catch`와 커플 데이터 타입을 정리해 모두 없앴습니다.
 - 개선 예정: 예산 초과 알림, 거래 내역 검색, 거래 내역 실시간 갱신

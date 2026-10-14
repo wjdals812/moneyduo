@@ -122,7 +122,7 @@ const ChartPage = () => {
       showStats(await fetchMonthTransactions(userId, selectedMonth), selectedMonth);
     } catch (err) {
       console.error("차트 데이터 로드 실패:", err);
-      setError(err instanceof Error ? `[${(err as any).code ?? "error"}] ${err.message}` : String(err));
+      setError(err instanceof Error ? `[${(err as { code?: string }).code ?? "error"}] ${err.message}` : String(err));
     } finally {
       setLoading(false);
     }
@@ -136,6 +136,7 @@ const ChartPage = () => {
     }
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadChartData(uid, formatMonthKey(month));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate, month, uid]);
 
   const openBudgetForm = () => {

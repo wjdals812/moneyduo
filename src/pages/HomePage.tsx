@@ -45,6 +45,8 @@ const formatDate = (dateStr: string) => {
   return `${d.getMonth() + 1}월 ${d.getDate()}일 (${days[d.getDay()]})`;
 };
 
+const errMsg = (e: unknown) => (e instanceof Error && e.message) || String(e);
+
 const HomePage = () => {
   const navigate = useNavigate();
 
@@ -145,7 +147,7 @@ const HomePage = () => {
         // 파트너 uid로 Firestore users 컬렉션에서 이름/이모지 조회
         try {
           const userSnap = await getDoc(doc(db, "users", partnerUid));
-          const p = userSnap.exists() ? (userSnap.data() as any) : null;
+          const p = userSnap.exists() ? (userSnap.data() as { displayName?: string }) : null;
           // 이름이 비어 있어도 파트너는 있으므로 "연결됨"이 보이도록 기본값 사용
           setPartnerName(p?.displayName || "상대방");
         } catch (e) {
@@ -260,9 +262,9 @@ const HomePage = () => {
                         await coupleService.leaveCouple(myUid);
                         loadTransactions(myUid, formatMonthKey(month)); // 알럿(화면 멈춤) 전에 내역 재조회 시작
                         alert("연결 해제되었습니다.");
-                      } catch (e: any) {
+                      } catch (e) {
                         loadTransactions(myUid, formatMonthKey(month));
-                        alert(e.message || String(e));
+                        alert(errMsg(e));
                       }
                     })();
                   }}
@@ -550,8 +552,8 @@ const HomePage = () => {
                         setInviteCode(res.inviteCode);
                         // 코드 생성 직후 리스너 붙이기 (파트너 참여 즉시 감지)
                         attachCoupleListener(res.coupleId, auth.currentUser.uid);
-                      } catch (e: any) {
-                        alert(e.message || String(e));
+                      } catch (e) {
+                        alert(errMsg(e));
                       } finally {
                         setIsCreating(false);
                       }
@@ -588,8 +590,8 @@ const HomePage = () => {
                       loadTransactions(auth.currentUser!.uid, formatMonthKey(month)); // 파트너 내역 바로 반영
                       alert("참여되었습니다.");
                       setShowCoupleModal(false);
-                    } catch (e: any) {
-                      alert(e.message || String(e));
+                    } catch (e) {
+                      alert(errMsg(e));
                     } finally {
                       setIsJoining(false);
                     }

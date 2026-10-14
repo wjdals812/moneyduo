@@ -42,28 +42,34 @@ export async function leaveCouple(currentUid: string) {
   coupleIdCache.set(currentUid, null);
 }
 
-export function listenToCouple(coupleId: string, onChange: (data: any) => void) {
+export interface Couple {
+  id: string;
+  inviteCode?: string;
+  members?: string[];
+}
+
+export function listenToCouple(coupleId: string, onChange: (data: Couple | null) => void) {
   const ref = doc(db, COUPLES_COL, coupleId);
   return onSnapshot(ref, (snap) => {
     if (!snap.exists()) {
       onChange(null);
       return;
     }
-    onChange({ id: snap.id, ...snap.data() });
+    onChange({ id: snap.id, ...snap.data() } as Couple);
   });
 }
 
-export async function getCoupleById(coupleId: string) {
+export async function getCoupleById(coupleId: string): Promise<Couple | null> {
   const ref = doc(db, COUPLES_COL, coupleId);
   const snap = await getDoc(ref);
   if (!snap.exists()) return null;
-  return { id: snap.id, ...snap.data() } as Record<string, any>;
+  return { id: snap.id, ...snap.data() } as Couple;
 }
 
 export async function getMyCoupleId(currentUid: string) {
   if (coupleIdCache.has(currentUid)) return coupleIdCache.get(currentUid) ?? null;
   const userSnap = await getDoc(doc(db, USERS_COL, currentUid));
-  const coupleId: string | null = (userSnap.data() as any)?.coupleId ?? null;
+  const coupleId: string | null = (userSnap.data() as { coupleId?: string } | undefined)?.coupleId ?? null;
   if (coupleId) coupleIdCache.set(currentUid, coupleId);
   return coupleId;
 }
