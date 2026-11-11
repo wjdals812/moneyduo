@@ -7,11 +7,17 @@
 html, body, #root {
   width: 100%;
   height: 100%;
-  background: #f8fafc;
-  font-family: 'Gowun Dodum', system-ui, sans-serif;
+  background: #fbf4f4;
+  font-family: 'Dongle', 'Gowun Dodum', system-ui, sans-serif;
+  /* Dongle은 같은 크기에서 글자가 작아서, 글자 높이(x-height)를 이 비율로 맞춰 키운다. 더 키우려면 값을 올린다 */
+  font-size-adjust: 0.45;
 }
 
-button {
+button, input, select, textarea {
+  font-size-adjust: inherit;
+}
+
+button, input, select, textarea {
   font-family: inherit;
 }
 

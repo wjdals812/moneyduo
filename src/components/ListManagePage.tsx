@@ -54,7 +54,7 @@ const ListManagePage = ({ title, fieldName, defaultItems, placeholder, addLabel 
           cursor: "pointer",
           display: "flex", alignItems: "center", justifyContent: "center",
         }}>←</button>
-        <div style={{ fontSize: "16px", fontWeight: 700, color: theme.text }}>{title}</div>
+        <div style={{ fontFamily: theme.fontTitle, fontSize: "22px", fontWeight: 400, color: theme.text }}>{title}</div>
       </div>
 
       <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "8px" }}>

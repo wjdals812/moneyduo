@@ -92,29 +92,41 @@ const BottomNav = () => {
 
   return (
     <div
-      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[400px] bg-white flex justify-around pt-2 z-30"
-      style={{
-        borderTop: `1px solid ${theme.border}`,
-        paddingBottom: "calc(env(safe-area-inset-bottom) + 4px)",
-      }}
+      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[400px] px-6 z-30"
+      style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 8px)" }}
     >
-      {menus.map(({ path, label, Icon }) => {
-        const active = location.pathname === path;
-        const color = active ? theme.accent : theme.textFaint;
-        return (
-          <div
-            key={path}
-            onClick={() => navigate(path)}
-            className="flex flex-col items-center gap-0.5 cursor-pointer flex-1 py-1"
-            style={{ color, touchAction: "manipulation" }}
-          >
-            <Icon active={active} />
-            <span className="text-[9px] font-semibold" style={{ color }}>
-              {label}
-            </span>
-          </div>
-        );
-      })}
+      <div
+        className="flex justify-around gap-1 p-1"
+        style={{
+          background: theme.surface,
+          border: `1px solid ${theme.border}`,
+          borderRadius: 24,
+          boxShadow: "0 6px 20px rgba(90, 60, 70, 0.12)",
+        }}
+      >
+        {menus.map(({ path, label, Icon }) => {
+          const active = location.pathname === path;
+          const color = active ? theme.accent : theme.textFaint;
+          return (
+            <button
+              key={path}
+              type="button"
+              aria-label={label}
+              aria-current={active ? "page" : undefined}
+              onClick={() => navigate(path)}
+              className="flex items-center justify-center cursor-pointer flex-1 py-2 [&_svg]:w-5 [&_svg]:h-5"
+              style={{
+                color,
+                background: active ? theme.accentMuted : "transparent",
+                borderRadius: 20,
+                touchAction: "manipulation",
+              }}
+            >
+              <Icon active={active} />
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 };

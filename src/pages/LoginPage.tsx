@@ -78,8 +78,9 @@ const LoginPage = () => {
 
         {/* 타이틀 */}
         <h1 style={{
-          fontSize: "26px",
-          fontWeight: 700,
+          fontFamily: theme.fontTitle,
+          fontSize: "34px",
+          fontWeight: 400,
           color: theme.text,
           margin: "0 0 4px",
           letterSpacing: "-0.3px",
@@ -95,7 +96,7 @@ const LoginPage = () => {
           textAlign: "center",
           lineHeight: 1.6,
         }}>
-          둘이 함께 쓰는 가계부
+          혼자 쓰는 가계부, 필요하면 둘이서도
         </p>
 
         {/* 구분선 */}
@@ -152,7 +153,7 @@ const LoginPage = () => {
           color: theme.textFaint,
           marginTop: "16px",
         }}>
-          둘이 함께 로그인해보세요
+          파트너 연결은 나중에 언제든 할 수 있어요
         </p>
       </div>
     </div>

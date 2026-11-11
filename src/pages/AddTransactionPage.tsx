@@ -79,7 +79,7 @@ const AddTransactionPage = () => {
           cursor: "pointer",
           display: "flex", alignItems: "center", justifyContent: "center",
         }}>←</button>
-        <div style={{ fontSize: "16px", fontWeight: 700, color: theme.text }}>내역 추가</div>
+        <div style={{ fontFamily: theme.fontTitle, fontSize: "22px", fontWeight: 400, color: theme.text }}>내역 추가</div>
       </div>
 
       <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -146,8 +146,8 @@ const AddTransactionPage = () => {
           </div>
         </div>
 
-        {/* 누가 */}
-        <div>
+        {/* 누가 (파트너 연결 후에만 표시, 혼자일 땐 항상 '나') */}
+        {coupleId && <div>
           <div style={{ fontSize: "11px", color: theme.textMuted, fontWeight: 600, marginBottom: "6px" }}>누가 썼나요?</div>
           <div style={{ display: "flex", gap: "8px" }}>
             {(["me", "together", "partner"] as const).map((p) => (
@@ -161,7 +161,7 @@ const AddTransactionPage = () => {
               }}>{p === "me" ? "나" : p === "together" ? "같이" : "짝꿍"}</button>
             ))}
           </div>
-        </div>
+        </div>}
 
         {/* 결제수단 */}
         <div>

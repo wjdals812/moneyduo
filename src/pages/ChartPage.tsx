@@ -15,7 +15,7 @@ interface CategoryStats {
   percentage: number;
 }
 
-const COLORS = ["#4f46e5", "#6366f1", "#818cf8", "#a5b4fc", "#c7d2fe", "#312e81"];
+const COLORS = theme.pastel;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const renderCustomLabel = (props: any, data: CategoryStats[]) => {
@@ -191,7 +191,7 @@ const ChartPage = () => {
         padding: "20px",
         borderBottom: `1px solid ${theme.border}`,
       }}>
-        <div style={{ fontSize: "18px", fontWeight: 700, color: theme.text }}>통계</div>
+        <div style={{ fontFamily: theme.fontTitle, fontSize: "24px", fontWeight: 400, color: theme.text }}>통계</div>
         <div style={{ fontSize: "12px", fontWeight: 500, color: theme.textMuted }}>월별 지출/수입 분석</div>
       </div>
 

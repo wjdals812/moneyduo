@@ -74,7 +74,7 @@ const TransactionPage = () => {
         padding: "20px",
         borderBottom: `1px solid ${theme.border}`,
       }}>
-        <div style={{ fontSize: "18px", fontWeight: 700, color: theme.text }}>내역</div>
+        <div style={{ fontFamily: theme.fontTitle, fontSize: "24px", fontWeight: 400, color: theme.text }}>내역</div>
         <div style={{ fontSize: "12px", fontWeight: 500, color: theme.textMuted }}>소비 기록</div>
       </div>
 
@@ -85,7 +85,7 @@ const TransactionPage = () => {
         </div>
 
         {/* 필터 탭 */}
-        <div style={{
+        {transactions.some((t) => t.paidBy !== "me") && <div style={{
           marginBottom: "16px",
           background: theme.surface,
           borderRadius: theme.radiusMd,
@@ -113,7 +113,7 @@ const TransactionPage = () => {
               {f.label}
             </button>
           ))}
-        </div>
+        </div>}
 
         {/* 내역 목록 */}
         {Object.keys(grouped).length === 0 ? (

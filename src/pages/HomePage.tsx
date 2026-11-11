@@ -235,7 +235,7 @@ const HomePage = () => {
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <div>
-            <div style={{ fontSize: "18px", fontWeight: 700, color: theme.text }}>MoneyDuo</div>
+            <div style={{ fontFamily: theme.fontTitle, fontSize: "24px", fontWeight: 400, color: theme.text }}>MoneyDuo</div>
             <div style={{ fontSize: "12px", fontWeight: 500, color: theme.textMuted }}>재정 현황</div>
           </div>
           <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
@@ -292,7 +292,7 @@ const HomePage = () => {
                   fontWeight: 600,
                 }}
               >
-                커플 연결
+                파트너 연결
               </button>
             )}
           </div>
@@ -343,7 +343,7 @@ const HomePage = () => {
         </div>
 
         {/* ── 예산 사용률 ─────────────────────────
-            내가 설정한 월 예산 대비 이 달 총지출(나+파트너 합산) 진행률
+            내가 설정한 월 예산 대비 이 달 총지출 진행률 (파트너 연결 시 합산)
             예산 미설정 시 표시 안 함
         ─────────────────────────────────────── */}
         {monthlyBudget != null && monthlyBudget > 0 && (() => {
@@ -484,7 +484,7 @@ const HomePage = () => {
           border: "none",
           color: "white",
           cursor: "pointer",
-          boxShadow: "0 4px 12px rgba(79, 70, 229, 0.35)",
+          boxShadow: "0 4px 12px rgba(184, 74, 99, 0.35)",
           display: "flex", alignItems: "center", justifyContent: "center",
           zIndex: 10,
         }}
@@ -508,7 +508,7 @@ const HomePage = () => {
           <div onClick={() => setShowCoupleModal(false)} style={{ position: "absolute", inset: 0, background: "rgba(15, 23, 42, 0.5)" }} />
           <div style={{ background: theme.surface, width: "86%", maxWidth: "320px", borderRadius: 14, padding: "20px 16px 16px", zIndex: 41, boxShadow: "0 20px 40px rgba(15, 23, 42, 0.2)" }}>
             <div style={{ textAlign: "center", marginBottom: 18 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: theme.text }}>커플 연결하기</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: theme.text }}>파트너 연결하기</div>
               <div style={{ fontSize: 12, color: theme.textMuted, marginTop: 4 }}>초대 코드로 가계부를 함께 써요</div>
             </div>
 
