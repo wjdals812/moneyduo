@@ -1,6 +1,6 @@
 {
-  "name": "MoneyDuo",
-  "short_name": "MoneyDuo",
+  "name": "한푼두푼",
+  "short_name": "한푼두푼",
   "description": "혼자 쓰는 가계부, 필요하면 둘이서도",
   "start_url": "/home",
   "display": "standalone",

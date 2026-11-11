@@ -85,7 +85,7 @@ const LoginPage = () => {
           margin: "0 0 4px",
           letterSpacing: "-0.3px",
         }}>
-          MoneyDuo
+          한푼두푼
         </h1>
 
         {/* 서브타이틀 */}

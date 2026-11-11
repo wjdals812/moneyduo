@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: MoneyDuo API
+  title: 한푼두푼 API
   version: 1.0.0
   description: |
     커플 연결 API. 모든 요청에는 Firebase ID 토큰이 필요합니다 (Authorize 버튼에 토큰만 붙여 넣기).

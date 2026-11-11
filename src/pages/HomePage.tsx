@@ -235,7 +235,7 @@ const HomePage = () => {
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <div>
-            <div style={{ fontFamily: theme.fontTitle, fontSize: "24px", fontWeight: 400, color: theme.text }}>MoneyDuo</div>
+            <div style={{ fontFamily: theme.fontTitle, fontSize: "24px", fontWeight: 400, color: theme.text }}>한푼두푼</div>
             <div style={{ fontSize: "12px", fontWeight: 500, color: theme.textMuted }}>재정 현황</div>
           </div>
           <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>

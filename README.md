@@ -1,4 +1,4 @@
-# 💸 MoneyDuo — 혼자 쓰는 가계부, 필요하면 둘이서도
+# 🐷 한푼두푼 — 혼자 쓰는 가계부, 필요하면 둘이서도
 
 [![CI](https://github.com/wjdals812/moneyduo/actions/workflows/ci.yml/badge.svg)](https://github.com/wjdals812/moneyduo/actions/workflows/ci.yml)
 
