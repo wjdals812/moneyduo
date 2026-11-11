@@ -40,7 +40,7 @@ const ProfilePage = () => {
                 const partnerSnap = await getDoc(doc(db, "users", partnerUid));
                 if (partnerSnap.exists()) {
                   const p = partnerSnap.data();
-                  setPartnerName(p.displayName || "");
+                  setPartnerName(p.displayName || "짝꿍"); // 이름이 비어도 연결된 상태라 카드가 보이도록 기본값 사용
                   setPartnerEmoji(p.emoji || "🐻");
                 }
               }
@@ -166,7 +166,8 @@ const ProfilePage = () => {
           <div style={{ fontSize: "12px", color: theme.textFaint }}>{email}</div>
         </div>
 
-        {/* 커플 정보 카드 */}
+        {/* 커플 정보 카드 (파트너가 연결됐을 때만 표시) */}
+        {partnerName && (
         <div style={{
           background: theme.surface,
           borderRadius: theme.radiusMd,
@@ -174,7 +175,6 @@ const ProfilePage = () => {
           padding: "20px",
         }}>
           <div style={{ fontSize: "12px", fontWeight: 600, color: theme.textMuted, marginBottom: 12 }}>커플</div>
-          {partnerName ? (
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <div style={{
                 width: "40px", height: "40px", borderRadius: "50%",
@@ -188,12 +188,8 @@ const ProfilePage = () => {
                 <div style={{ fontSize: "11px", color: theme.textFaint }}>연결됨</div>
               </div>
             </div>
-          ) : (
-            <div style={{ fontSize: "13px", color: theme.textFaint, textAlign: "center", padding: "8px 0" }}>
-              아직 연결된 파트너가 없어요
-            </div>
-          )}
         </div>
+        )}
 
         {/* 카테고리 관리 */}
         <button
